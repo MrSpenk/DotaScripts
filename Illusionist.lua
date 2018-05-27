@@ -47,7 +47,7 @@ function Illusionist.OnUpdate()
 		end
 	end
 	
-	if Menu.IsKeyDownOnce(Illusionist.Key1) then
+	if Menu.IsKeyDown(Illusionist.Key1) then
 		if Illusionist.movetriger <= GameRules.GetGameTime() then
 			if #illustable > 0 then
 				for _,illusion in pairs(illustable) do
