@@ -42,13 +42,6 @@ function Illusionist.OnUpdate()
 				Illusionist.triger = GameRules.GetGameTime() + 0.2
 			end
 		end
-		local bottle = NPC.GetItem(myHero, "item_bottle")
-		if bottle and Bottle.GetRuneType(bottle) == Enum.RuneType.DOTA_RUNE_ILLUSION then
-			if Illusionist.triger <= GameRules.GetGameTime() then
-				Ability.CastNoTarget(bottle)
-				Illusionist.triger = GameRules.GetGameTime() + 0.5
-			end
-		end
 	end
 	if Menu.IsKeyDown(Illusionist.Key1) then
 		if Illusionist.movetriger <= GameRules.GetGameTime() then
