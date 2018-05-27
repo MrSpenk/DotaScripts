@@ -1,7 +1,7 @@
 local Illusionist = {}
 
 Illusionist.Enable = Menu.AddOptionBool({"Utility", "Illusionist"}, "Activation", false)
-Illusionist.useManta = Menu.AddOptionBool({"Utility", "Illusionist"}, "Use Manta Style", true)
+Illusionist.useManta = Menu.AddOptionBool({"Utility", "Illusionist"}, "Use Manta Style", false)
 Illusionist.Key1 = Menu.AddKeyOption({"Utility", "Illusionist"}, "Illusions run to the sides", Enum.ButtonCode.BUTTON_CODE_NONE)
 Illusionist.Key2 = Menu.AddKeyOption({"Utility", "Illusionist"}, "One runs to the base", Enum.ButtonCode.BUTTON_CODE_NONE)
 
