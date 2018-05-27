@@ -118,7 +118,7 @@ function Illusionist.FindIllus()
 end
 
 function Illusionist.init()
-	Illusionist.Illusionist.triger = 0
+	Illusionist.triger = 0
 	Illusionist.movetriger = 0
 end
 
