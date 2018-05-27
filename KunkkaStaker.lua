@@ -57,9 +57,7 @@ function KunkkaStaker.init()
 	KunkkaStaker.sizeBar = 32
 	KunkkaStaker.needStaker = false
 	KunkkaStaker.anchentpoint = {
-	{Vector(-2969,-119, 384),false},
 	{Vector(73,-1860,384),false},
-	{Vector(-851, 2263, 384),false},
 	{Vector(3911,-575,256),false} }
 end
 
