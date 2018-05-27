@@ -12,7 +12,7 @@ function KunkkaStacker.OnUpdate()
 	local torrent = NPC.GetAbility(myHero, "kunkka_torrent")
 	if not torrent then return end
 	
-	KunkkaStacker.needStaker = true
+	KunkkaStacker.needStacker = true
 	
 	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
 		if Ability.IsReady(torrent) then
@@ -30,7 +30,7 @@ function KunkkaStacker.OnUpdate()
 end
 
 function KunkkaStacker.OnDraw()
-	if not KunkkaStacker.needStaker then return end
+	if not KunkkaStacker.needStacker then return end
 	
 	for _,camp in pairs(KunkkaStacker.anchentpoint) do
 		if camp then
@@ -55,7 +55,7 @@ end
 
 function KunkkaStacker.init()
 	KunkkaStacker.sizeBar = 32
-	KunkkaStacker.needStaker = false
+	KunkkaStacker.needStacker = false
 	KunkkaStacker.anchentpoint = {
 	{Vector(73,-1860,384),false},
 	{Vector(3911,-575,256),false} }
