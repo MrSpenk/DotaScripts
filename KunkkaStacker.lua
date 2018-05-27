@@ -1,7 +1,7 @@
 local KunkkaStacker = {}
 
-KunkkaStacker.Enable = Menu.AddOptionBool({"Utility", "Kunkka Staker"}, "Activation", false)
-KunkkaStacker.Key = Menu.AddKeyOption({"Utility", "Kunkka Staker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
+KunkkaStacker.Enable = Menu.AddOptionBool({"Utility", "Kunkka Stacker"}, "Activation", false)
+KunkkaStacker.Key = Menu.AddKeyOption({"Utility", "Kunkka Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
 
 function KunkkaStacker.OnUpdate()
 	if not Menu.IsEnabled(KunkkaStacker.Enable) then return end
