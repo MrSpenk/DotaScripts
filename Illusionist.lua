@@ -1,11 +1,9 @@
 local Illusionist = {}
 
 Illusionist.Enable = Menu.AddOptionBool({"Utility", "Illusionist"}, "Activation", false)
-Illusionist.Key1= Menu.AddKeyOption({"Utility", "Illusionist"}, "Illusions run to the sides", Enum.ButtonCode.BUTTON_CODE_NONE)
-Illusionist.Key2= Menu.AddKeyOption({"Utility", "Illusionist"}, "One runs to the base", Enum.ButtonCode.BUTTON_CODE_NONE)
-
-Illusionist.triger = 0
-Illusionist.movetriger = 0
+Illusionist.useManta = Menu.AddOptionBool({"Utility", "Illusionist"}, "Use Manta Style", true)
+Illusionist.Key1 = Menu.AddKeyOption({"Utility", "Illusionist"}, "Illusions run to the sides", Enum.ButtonCode.BUTTON_CODE_NONE)
+Illusionist.Key2 = Menu.AddKeyOption({"Utility", "Illusionist"}, "One runs to the base", Enum.ButtonCode.BUTTON_CODE_NONE)
 
 function Illusionist.OnUpdate()
 	if not Menu.IsEnabled(Illusionist.Enable) then return end
@@ -17,6 +15,7 @@ function Illusionist.OnUpdate()
 	
 	local illustable = Illusionist.FindIllus()
 	if #illustable == 0 then
+	
 		local naga = NPC.GetAbility(myHero, "naga_siren_mirror_image")
 		if naga and Ability.IsReady(naga) then
 			if Illusionist.triger <= GameRules.GetGameTime() then
@@ -24,6 +23,7 @@ function Illusionist.OnUpdate()
 				Illusionist.triger = GameRules.GetGameTime() + 1
 			end
 		end
+		
 		local doppelwalk = NPC.GetAbility(myHero, "phantom_lancer_doppelwalk")
 		if doppelwalk and Ability.IsReady(doppelwalk) then
 			if Illusionist.triger <= GameRules.GetGameTime() then
@@ -35,6 +35,9 @@ function Illusionist.OnUpdate()
 				Illusionist.triger = GameRules.GetGameTime() + 0.5
 			end
 		end
+	end
+	
+	if Menu.IsEnabled(Illusionist.useManta) then
 		local manta = NPC.GetItem(myHero, "item_manta")
 		if manta and Ability.IsReady(manta) then
 			if Illusionist.triger <= GameRules.GetGameTime() then
@@ -43,7 +46,8 @@ function Illusionist.OnUpdate()
 			end
 		end
 	end
-	if Menu.IsKeyDown(Illusionist.Key1) then
+	
+	if Menu.IsKeyDownOnce(Illusionist.Key1) then
 		if Illusionist.movetriger <= GameRules.GetGameTime() then
 			if #illustable > 0 then
 				for _,illusion in pairs(illustable) do
@@ -51,7 +55,7 @@ function Illusionist.OnUpdate()
 						local npc = nil
 						while not npc do
 							npc = Trees.Get(math.random(0,Trees.Count()))
-						end	
+						end
 						local vector = Entity.GetAbsOrigin(npc)
 						NPC.MoveTo(illusion,vector)
 					end
@@ -60,6 +64,7 @@ function Illusionist.OnUpdate()
 			end
 		end
 	end
+	
 	if Menu.IsKeyDown(Illusionist.Key2) then
 		if Illusionist.movetriger <= GameRules.GetGameTime() then
 			if #illustable > 0 then
@@ -122,5 +127,7 @@ end
 function Illusionist.OnGameEnd()
 	Illusionist.init()
 end
+
+Illusionist.init()
 
 return Illusionist
