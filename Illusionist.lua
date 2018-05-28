@@ -12,7 +12,7 @@ function Illusionist.OnUpdate()
 	local myHero = Heroes.GetLocal()
 	if not myHero then return end
 	
-	if not Menu.IsKeyDown(Illusionist.Key1) and not Menu.IsEnabled( Illusionist.optionManualCreate ) then return end
+	if not Menu.IsKeyDown(Illusionist.Key1) and not Menu.IsKeyDown(Illusionist.Key2) then return end
 	
 	local illustable = Illusionist.FindIllus()
 	if #illustable == 0 and not Menu.IsEnabled( Illusionist.optionManualCreate ) then
