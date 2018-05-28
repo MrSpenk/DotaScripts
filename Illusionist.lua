@@ -37,17 +37,18 @@ function Illusionist.OnUpdate()
 				Illusionist.triger = GameRules.GetGameTime() + 0.5
 			end
 		end
-	end
-	
-	if Menu.IsEnabled(Illusionist.optionManta) then
-		local manta = NPC.GetItem(myHero, "item_manta")
-		if manta and Ability.IsReady(manta) then
-			if Illusionist.triger <= GameRules.GetGameTime() then
-				Ability.CastNoTarget(manta)
-				Illusionist.triger = GameRules.GetGameTime() + 0.2
+		
+		if Menu.IsEnabled(Illusionist.optionManta) then
+			local manta = NPC.GetItem(myHero, "item_manta")
+			if manta and Ability.IsReady(manta) then
+				if Illusionist.triger <= GameRules.GetGameTime() then
+					Ability.CastNoTarget(manta)
+					Illusionist.triger = GameRules.GetGameTime() + 0.2
+				end
 			end
 		end
 	end
+	
 	
 	if Menu.IsKeyDown(Illusionist.Key1) then
 		if Illusionist.movetriger <= GameRules.GetGameTime() then
