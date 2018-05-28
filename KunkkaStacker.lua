@@ -58,7 +58,13 @@ function KunkkaStacker.init()
 	KunkkaStacker.needStacker = false
 	KunkkaStacker.anchentpoint = {
 	{Vector(73,-1860,384),false},
-	{Vector(3911,-575,256),false} }
+	{Vector(476, -4677, 384), false},
+	{Vector(2547, 93, 384), false},
+	{Vector(3911,-575,256), false},
+	{Vector(-2766, 4551, 256), false},
+	{Vector(3911,-575,256), false},
+	{Vector(-1882, 4191, 256), false},
+	{Vector(-4271, 3549, 255), false} }
 end
 
 function KunkkaStacker.OnGameStart()
