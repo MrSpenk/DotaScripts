@@ -1,20 +1,22 @@
 local Illusionist = {}
 
-Illusionist.Enable = Menu.AddOptionBool({"Utility", "Illusionist"}, "Activation", false)
-Illusionist.useManta = Menu.AddOptionBool({"Utility", "Illusionist"}, "Use Manta Style", false)
+Illusionist.optionEnable = Menu.AddOptionBool({"Utility", "Illusionist"}, "Activation", false)
+Illusionist.optionManta = Menu.AddOptionBool({"Utility", "Illusionist"}, "Use Manta Style", false)
+Illusionist.optionManualCreate = Menu.AddOptionBool({"Utility", "Illusionist"}, "Create illusions manually", true)
 Illusionist.Key1 = Menu.AddKeyOption({"Utility", "Illusionist"}, "Illusions run to the sides", Enum.ButtonCode.BUTTON_CODE_NONE)
 Illusionist.Key2 = Menu.AddKeyOption({"Utility", "Illusionist"}, "One runs to the base", Enum.ButtonCode.BUTTON_CODE_NONE)
 
+
 function Illusionist.OnUpdate()
-	if not Menu.IsEnabled(Illusionist.Enable) then return end
+	if not Menu.IsEnabled(Illusionist.optionEnable) then return end
 	
 	local myHero = Heroes.GetLocal()
 	if not myHero then return end
 	
-	if not Menu.IsKeyDown(Illusionist.Key1) and not Menu.IsKeyDown(Illusionist.Key2) then return end
+	if not Menu.IsKeyDown(Illusionist.Key1) and not Menu.IsEnabled( Illusionist.optionManualCreate ) then return end
 	
 	local illustable = Illusionist.FindIllus()
-	if #illustable == 0 then
+	if #illustable == 0 and not Menu.IsEnabled( Illusionist.optionManualCreate ) then
 	
 		local naga = NPC.GetAbility(myHero, "naga_siren_mirror_image")
 		if naga and Ability.IsReady(naga) then
@@ -37,7 +39,7 @@ function Illusionist.OnUpdate()
 		end
 	end
 	
-	if Menu.IsEnabled(Illusionist.useManta) then
+	if Menu.IsEnabled(Illusionist.optionManta) then
 		local manta = NPC.GetItem(myHero, "item_manta")
 		if manta and Ability.IsReady(manta) then
 			if Illusionist.triger <= GameRules.GetGameTime() then
