@@ -103,7 +103,7 @@ function Lina.EnemyKillable( enemy, throughBKB )
 	if NPC.IsLinkensProtected( enemy ) then return false end
 	
 	if NPC.HasItem(enemy, "item_aegis") then 
-		if not Menu.GetValue( Lina.optionLagunaInAegis ) then return false end
+		if not Menu.IsEnabled( Lina.optionLagunaInAegis ) then return false end
 	end
 
 	return true
