@@ -2,7 +2,7 @@ local Lina = {}
 
 Lina.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Eul's Combo", false)
 Lina.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Lina" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
-Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", false)
+Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", true)
 Lina.optionAutoLaguna = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Activation", false)
 Lina.optionLagunaInAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Aegis", false)
 
@@ -101,6 +101,7 @@ function Lina.EnemyKillable( enemy, throughBKB )
 	if NPC.HasModifier(enemy, "modifier_item_aeon_disk_buff") then return false end
 	if NPC.HasModifier(enemy, "modifier_item_blade_mail_reflect") then return false end
 	if NPC.IsLinkensProtected( enemy ) then return false end
+	if NPC.HasModifier(enemy, "modifier_item_lotus_orb_active") then return false end
 	
 	if NPC.HasItem(enemy, "item_aegis") then 
 		if not Menu.IsEnabled( Lina.optionLagunaInAegis ) then return false end
