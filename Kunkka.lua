@@ -1,7 +1,7 @@
 local Kunnka = {}
 
 Kunnka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Activation", false)
-Kunnka.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Attack after combo", false)
+Kunnka.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Attack during combo", true)
 Kunnka.optionComboType = Menu.AddOptionCombo({ "Hero Specific", "Kunnka" }, "Combo Type", {" X-Mark + Torrent", " X-Mark + GhostShip", " X-Mark + Torrent + GhostShip"}, 0)
 Kunnka.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunnka" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 
@@ -104,9 +104,6 @@ function Kunnka.OnUpdate()
 	else
 		Kunnka.Target = nil
 	end
-
-	if not Menu.IsEnabled( Kunnka.optionAutoLaguna ) then return end
-		Kunnka.AutoLaguna()
 end
 
 function Kunnka.LockTarget(enemy)
