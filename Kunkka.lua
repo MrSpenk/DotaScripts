@@ -218,7 +218,7 @@ function Kunkka.getComboTarget()
 	local mousePos = Input.GetWorldCursorPos()
 
 	local enemyTable = Heroes.InRadius(mousePos, Ability.GetCastRange(Kunkka.XMark), Entity.GetTeamNum(Kunkka.Hero), Enum.TeamType.TEAM_ENEMY)
-	if enemyTable == nil or #enemyTable < 1 then return end
+	if enemyTable == nil or #enemyTable < 1 then return nil end
 
 	local nearestTarget = nil
 	local distance = 99999
