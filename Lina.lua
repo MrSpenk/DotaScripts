@@ -4,7 +4,8 @@ Lina.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Eul's Combo
 Lina.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Lina" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", true)
 Lina.optionAutoLaguna = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Activation", false)
-Lina.optionLagunaInAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Aegis", false)
+Lina.optionLagunaInvisible = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When you're invisible", false)
+Lina.optionLagunaInAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When an enemy has Aegis", false)
 
 Lina.Hero = nil
 Lina.Mana = nil
@@ -35,18 +36,18 @@ function Lina.OnUpdate()
 	if Menu.IsKeyDown( Lina.optionComboKey ) then
 		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Lina.Hero), Enum.TeamType.TEAM_ENEMY)
 		if enemy and not NPC.IsIllusion( enemy ) and Entity.GetHealth( enemy ) > 0 and NPC.IsEntityInRange(Lina.Hero, enemy, 570) then
-		
+
 			Lina.LockTarget(enemy)
 			if Lina.Target == nil then return end
-			
+
 			local pos = Entity.GetAbsOrigin( Lina.Target )
-			
+
 			if Lina.Eul and Lina.heroCanCast( Lina.Hero ) and Ability.IsCastable( Lina.Eul, Lina.Mana ) and Ability.IsReady(Lina.Eul) then
 				Ability.CastTarget(Lina.Eul, Lina.Target, false)
 			end
-				
+
 			local castStrike = NPC.GetTimeToFacePosition(Lina.Hero, pos) + (Ability.GetCastPoint(Lina.Strike) + 0.5) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-				 
+
 			if NPC.HasModifier(Lina.Target, "modifier_eul_cyclone") then
 				local cycloneDieTime = Modifier.GetDieTime(NPC.GetModifier(Lina.Target, "modifier_eul_cyclone"))
 
@@ -55,25 +56,27 @@ function Lina.OnUpdate()
 				end
 
 				local castSlave = NPC.GetTimeToFacePosition(Lina.Hero, pos) + Ability.GetCastPoint(Lina.Slave) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					
+
 				if Ability.IsCastable( Lina.Slave, Lina.Mana ) and Ability.IsReady( Lina.Slave ) and cycloneDieTime - GameRules.GetGameTime() <= castSlave then
 					Ability.CastPosition(Lina.Slave, pos, true)
 				end
 			end
-			
+
 			if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) and not Menu.IsEnabled( Lina.optionAttack ) then return end
 				Player.AttackTarget(Players.GetLocal(), Lina.Hero, Lina.Target)
 		else
 			Lina.Target = nil
 		end
 	end
-	
+
 	if not Menu.IsEnabled( Lina.optionAutoLaguna ) then return end
 		Lina.AutoLaguna()
 end
 
 function Lina.AutoLaguna()
 	if Menu.IsEnabled( Lina.optionAutoLaguna ) then
+		if Lina.IsHeroInvisible(Lina.Hero) and not Menu.IsEnabled( Lina.optionLagunaInvisible ) then return end
+		
 		local heroes = Entity.GetHeroesInRadius(Lina.Hero, Ability.GetCastRange(Lina.Laguna), Enum.TeamType.TEAM_ENEMY)
 		if not heroes then return end
 		
@@ -92,6 +95,28 @@ function Lina.AutoLaguna()
 			end
 		end
 	end
+end
+
+function Lina.IsHeroInvisible(Hero)
+	if NPC.HasState(Hero, Enum.ModifierState.MODIFIER_STATE_INVISIBLE) then return true end
+	if NPC.HasModifier(Hero, "modifier_invoker_ghost_walk_self") then return true end
+	if NPC.HasAbility(Hero, "invoker_ghost_walk") then
+		if Ability.SecondsSinceLastUse(NPC.GetAbility(Hero, "invoker_ghost_walk")) > -1 and Ability.SecondsSinceLastUse(NPC.GetAbility(Hero, "invoker_ghost_walk")) < 1 then 
+			return true
+		end
+	end
+
+	if NPC.HasItem(Hero, "item_invis_sword", true) then
+		if Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_invis_sword", true)) > -1 and Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_invis_sword", true)) < 1 then 
+			return true
+		end
+	end
+	if NPC.HasItem(Hero, "item_silver_edge", true) then
+		if Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_silver_edge", true)) > -1 and Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_silver_edge", true)) < 1 then 
+			return true
+		end
+	end
+	return false
 end
 
 function Lina.EnemyKillable( enemy, throughBKB )
