@@ -1,7 +1,7 @@
 local Kunnka = {}
 
 Kunnka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Activation", false)
-Kunnka.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Attack during combo", false)
+Kunnka.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Kunnka" }, "Attack after combo", false)
 Kunnka.optionComboType = Menu.AddOptionCombo({ "Hero Specific", "Kunnka" }, "Combo Type", {" X-Mark + Torrent", " X-Mark + GhostShip", " X-Mark + Torrent + GhostShip"}, 0)
 Kunnka.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunnka" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 
@@ -33,7 +33,6 @@ function Kunnka.OnUpdate()
 	Kunnka.Splash = NPC.GetAbility(Kunnka.Hero, "kunkka_tidebringer")
 	Kunnka.XMark = NPC.GetAbility(Kunnka.Hero, "kunkka_x_marks_the_spot")
 	Kunnka.Ship = NPC.GetAbility(Kunnka.Hero, "kunkka_ghostship")
-	Kunnka.Return = NPC.GetAbility(Kunnka.Hero, "kunkka_return")
 	
 	if Menu.IsKeyDown( Kunnka.optionComboKey ) then	
 		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Kunnka.Hero), Enum.TeamType.TEAM_ENEMY)
@@ -89,7 +88,6 @@ function Kunnka.OnUpdate()
 					local castShip = NPC.GetTimeToFacePosition(Kunnka.Hero, Kunnka.MarkPos) + (Ability.GetCastPoint(Kunnka.Ship) + 3.1 + Ability.GetCastPoint(Kunnka.Torrent)) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
 					local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunnka.Target, "modifier_kunkka_x_marks_the_spot"))
 					
-					local castReturn = XMarkDieTime - castTorrent - Ability.GetCastPoint(Kunnka.Return)
 					if Ability.IsReady( Kunnka.Torrent ) and Ability.IsCastable( Kunnka.Torrent, Kunnka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castTorrent then
 						Ability.CastPosition(Kunnka.Torrent, Kunnka.MarkPos, true)
 					end
@@ -100,7 +98,7 @@ function Kunnka.OnUpdate()
 				end
 			end
 			
-			if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) and not Menu.IsEnabled( Kunnka.optionAttack ) then return end
+			if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) or not Menu.IsEnabled( Kunnka.optionAttack ) then return end
 				Player.AttackTarget(Players.GetLocal(), Kunnka.Hero, Kunnka.Target)
 		end
 	else
