@@ -85,7 +85,7 @@ function Kunnka.OnUpdate()
 					end
 				else
 					local castTorrent = NPC.GetTimeToFacePosition(Kunnka.Hero, Kunnka.MarkPos) + (Ability.GetCastPoint(Kunnka.Torrent) + 1.6) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					local castShip = NPC.GetTimeToFacePosition(Kunnka.Hero, Kunnka.MarkPos) + (Ability.GetCastPoint(Kunnka.Ship) + 3.1 + Ability.GetCastPoint(Kunnka.Torrent)) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+					local castShip = NPC.GetTimeToFacePosition(Kunnka.Hero, Kunnka.MarkPos) + (Ability.GetCastPoint(Kunnka.Ship) + 3.1) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
 					local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunnka.Target, "modifier_kunkka_x_marks_the_spot"))
 					
 					if Ability.IsReady( Kunnka.Torrent ) and Ability.IsCastable( Kunnka.Torrent, Kunnka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castTorrent then
