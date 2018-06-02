@@ -66,7 +66,7 @@ function Kunkka.OnUpdate()
 			if Kunkka.Target == nil then return end
 			
 			if Kunkka.ComboType == 0 then
-				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+				--if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
 					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
 						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
 							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
@@ -80,9 +80,9 @@ function Kunkka.OnUpdate()
 							Ability.CastPosition(Kunkka.Torrent, Kunkka.MarkPos)
 						end
 					end
-				end
+				--end
 			elseif Kunkka.ComboType == 1 then
-				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+				--if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
 					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
 						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
 							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
@@ -96,9 +96,9 @@ function Kunkka.OnUpdate()
 							Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos)
 						end
 					end
-				end
+				--end
 			elseif Kunkka.ComboType == 2 then
-				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+				--if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
 					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
 						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
 							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
@@ -117,7 +117,7 @@ function Kunkka.OnUpdate()
 							Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos)
 						end
 					end
-				end
+				--end
 			end
 			
 			if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) or not Menu.IsEnabled( Kunkka.optionAttack ) then return end
