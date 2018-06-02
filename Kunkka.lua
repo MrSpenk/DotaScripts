@@ -58,66 +58,64 @@ function Kunkka.OnUpdate()
 	Kunkka.XMark = NPC.GetAbility(Kunkka.Hero, "kunkka_x_marks_the_spot")
 	Kunkka.Ship = NPC.GetAbility(Kunkka.Hero, "kunkka_ghostship")
 	
+
 	if Menu.IsKeyDown( Kunkka.optionComboKey ) then	
-		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Kunkka.Hero), Enum.TeamType.TEAM_ENEMY)
-		if enemy and not NPC.IsIllusion( enemy ) and Entity.GetHealth( enemy ) > 0 and NPC.IsEntityInRange(Kunkka.Hero, enemy, 999) then
+		local enemy = Kunkka.getComboTarget()
+		if enemy and Kunkka.heroCanCast( Kunkka.Hero ) and NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
 			Kunkka.LockTarget(enemy)
 			if Kunkka.Target == nil then return end
-
+			
 			if Kunkka.ComboType == 0 then
-				if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
-					if Kunkka.XMark and Kunkka.heroCanCast( Kunkka.Hero ) 
-						and Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) 
-						and Ability.IsCastable( Kunkka.Torrent, Kunkka.Mana ) and Ability.IsReady( Kunkka.Torrent ) then
-						
-						Ability.CastTarget(Kunkka.XMark, Kunkka.Target, false)
-						Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
-					end
-				else
-					local castTorrent = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Torrent) + 1.6) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot"))
+				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
+						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
+							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
+							Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
+						end
+					else
+						local castTorrent = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Torrent) + 1.6) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+						local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot")) - GameRules.GetGameTime()
 
-					if Ability.IsReady( Kunkka.Torrent ) and Ability.IsCastable( Kunkka.Torrent, Kunkka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castTorrent then
-						Ability.CastPosition(Kunkka.Torrent, Kunkka.MarkPos, true)
+						if Ability.IsReady( Kunkka.Torrent ) and Ability.IsCastable( Kunkka.Torrent, Kunkka.Mana ) and XMarkDieTime <= castTorrent then
+							Ability.CastPosition(Kunkka.Torrent, Kunkka.MarkPos)
+						end
 					end
 				end
 			elseif Kunkka.ComboType == 1 then
-				if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
-					if Kunkka.XMark and Kunkka.heroCanCast( Kunkka.Hero ) 
-						and Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark )
-						and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and Ability.IsReady( Kunkka.Ship ) then
-						Ability.CastTarget(Kunkka.XMark, Kunkka.Target, false)
-						Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
-					end
-				else
-					local castShip = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Ship) + 3.1) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot"))
+				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
+						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
+							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
+							Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
+						end
+					else
+						local castShip = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Ship) + 3.1) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+						local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot")) - GameRules.GetGameTime()
 
-					if Ability.IsReady( Kunkka.Ship ) and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castShip then
-						Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos, true)
+						if Ability.IsReady( Kunkka.Ship ) and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and XMarkDieTime <= castShip then
+							Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos)
+						end
 					end
 				end
 			elseif Kunkka.ComboType == 2 then
-				if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
-					if Kunkka.XMark and Kunkka.heroCanCast( Kunkka.Hero ) 
-						and Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark )
-						and Ability.IsCastable( Kunkka.Torrent, Kunkka.Mana ) and Ability.IsReady( Kunkka.Torrent )
-						and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and Ability.IsReady( Kunkka.Ship ) then
-						
-						Ability.CastTarget(Kunkka.XMark, Kunkka.Target, false)
-						Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
-					end
-				else
-					local castTorrent = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Torrent) + 1.6) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					local castShip = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Ship) + 3.1) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-					local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot"))
-					
-					if Ability.IsReady( Kunkka.Torrent ) and Ability.IsCastable( Kunkka.Torrent, Kunkka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castTorrent then
-						Ability.CastPosition(Kunkka.Torrent, Kunkka.MarkPos, true)
-					end
-					
-					if Ability.IsReady( Kunkka.Ship ) and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and XMarkDieTime - GameRules.GetGameTime() <= castShip then
-						Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos, true)
+				if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.XMark)) then
+					if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
+						if Ability.IsCastable( Kunkka.XMark, Kunkka.Mana ) and Ability.IsReady( Kunkka.XMark ) then
+							Ability.CastTarget(Kunkka.XMark, Kunkka.Target)
+							Kunkka.MarkPos = Entity.GetAbsOrigin( Kunkka.Target )
+						end
+					else
+						local castTorrent = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Torrent) + 1.6) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+						local castShip = NPC.GetTimeToFacePosition(Kunkka.Hero, Kunkka.MarkPos) + (Ability.GetCastPoint(Kunkka.Ship) + 3.1) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+						local XMarkDieTime = Modifier.GetDieTime(NPC.GetModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot")) - GameRules.GetGameTime()
+							
+						if NPC.IsEntityInRange(Kunkka.Hero, enemy, Ability.GetCastRange(Kunkka.Torrent)) and XMarkDieTime  <= castTorrent then
+							Ability.CastPosition(Kunkka.Torrent, Kunkka.MarkPos)
+						end
+							
+						if Ability.IsReady( Kunkka.Ship ) and Ability.IsCastable( Kunkka.Ship, Kunkka.Mana ) and XMarkDieTime <= castShip then
+							Ability.CastPosition(Kunkka.Ship, Kunkka.MarkPos)
+						end
 					end
 				end
 			end
@@ -174,14 +172,16 @@ function Kunkka.OnDraw()
 end
 
 function Kunkka.LockTarget(enemy)
-	if Kunkka.Target == nil and enemy then Kunkka.Target = enemy end
+	if Kunkka.Target == nil and enemy then 
+		Kunkka.Target = enemy 
+	end
 	
 	if Kunkka.Target ~= nil then
 		if not Entity.IsAlive(Kunkka.Target) then
 			Kunkka.Target = nil
 		elseif Entity.IsDormant(Kunkka.Target) then
 			Kunkka.Target = nil
-		elseif not NPC.IsEntityInRange(Kunkka.Hero, Kunkka.Target, 570) then
+		elseif not NPC.IsEntityInRange(Kunkka.Hero, Kunkka.Target, Ability.GetCastRange(Kunkka.XMark)) then
 			Kunkka.Target = nil
 		end
 	end
@@ -218,6 +218,27 @@ function Kunkka.heroCanCast(Hero)
 	if NPC.HasModifier(Hero, "modifier_teleporting") then return false end
 	
 	return true
+end
+
+function Kunkka.getComboTarget()
+	local mousePos = Input.GetWorldCursorPos()
+
+	local enemyTable = Heroes.InRadius(mousePos, Ability.GetCastRange(Kunkka.XMark), Entity.GetTeamNum(Kunkka.Hero), Enum.TeamType.TEAM_ENEMY)
+	if #enemyTable < 1 then return end
+
+	local nearestTarget = nil
+	local distance = 99999
+
+	for i, v in ipairs(enemyTable) do
+		if v and Entity.IsHero( v ) and not NPC.IsIllusion( v ) and Entity.GetHealth( v ) > 0 then
+			local enemyDist = (Entity.GetAbsOrigin(v) - mousePos):Length2D()
+			if enemyDist < distance then
+				nearestTarget = v
+				distance = enemyDist
+			end
+		end
+	end
+	return nearestTarget or nil
 end
 
 return Kunkka
