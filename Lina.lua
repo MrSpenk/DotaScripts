@@ -196,4 +196,60 @@ function Lina.heroCanCast(Hero)
 	return true
  end
  
+function Kunkka.targetChecker(genericEnemyEntity)
+
+	local myHero = Heroes.GetLocal()
+		if not myHero then return end
+
+	if genericEnemyEntity and not NPC.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
+
+		if Menu.IsEnabled(Kunkka.optionTargetCheckAM) then
+			if NPC.GetUnitName(genericEnemyEntity) == "npc_dota_hero_antimage" and NPC.HasItem(genericEnemyEntity, "item_ultimate_scepter", true) and NPC.HasModifier(genericEnemyEntity, "modifier_antimage_spell_shield") and Ability.IsReady(NPC.GetAbility(genericEnemyEntity, "antimage_spell_shield")) then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckLotus) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_lotus_orb_active") then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckBlademail) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(Heroes.GetLocal()) <= 0.25 * Entity.GetMaxHealth(myHero) then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckNyx) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_nyx_assassin_spiked_carapace") then
+				return
+			end
+		end
+
+		if NPC.HasModifier(genericEnemyEntity, "modifier_ursa_enrage") then
+			return
+		end
+
+		if Menu.IsEnabled(Kunkka.optionTargetCheckAbbadon) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_abaddon_borrowed_time") then
+				return
+			end
+		end
+			
+		if NPC.HasModifier(genericEnemyEntity, "modifier_dazzle_shallow_grave") and NPC.GetUnitName(myHero) ~= "npc_dota_hero_axe" then
+			return
+		end
+
+		if NPC.HasModifier(genericEnemyEntity, "modifier_skeleton_king_reincarnation_scepter_active") then
+			return
+		end
+		if NPC.HasModifier(genericEnemyEntity, "modifier_winter_wyvern_winters_curse") then
+			return
+		end
+
+	return genericEnemyEntity
+	end	
+end
+ 
 return Lina
