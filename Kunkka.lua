@@ -9,8 +9,6 @@ Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkk
 Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Nyx Carapace", true)
 Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
 
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 200)
-
 Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
 Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
 
@@ -50,7 +48,7 @@ function Kunkka.OnUpdate()
 	if not myHero or NPC.GetUnitName(myHero) ~= "npc_dota_hero_kunkka" then return end
 	
 	local enemy = Kunkka.getComboTarget(myHero)
-	if enemy then Kunkka.FullCombo(myHero, enemy) end
+	if enemy ~= nil then Kunkka.FullCombo(myHero, enemy) end
 	
 	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
 	local Torrent = NPC.GetAbility(myHero, "kunkka_torrent")
@@ -84,21 +82,25 @@ function Kunkka.FullCombo(myHero, enemy)
 
 	if os.clock() < Kunkka.lastTick then return end
 
+	if Kunkka.Target == nil then
+		Kunkka.Target = enemy
+	end
+	
 	if Kunkka.ComboTimer < os.clock() then
-		if enemy and Entity.IsAlive(enemy) and not NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not NPC.IsLinkensProtected(enemy) and Kunkka.heroCanCastSpells(myHero, enemy) == true then
-			if not NPC.HasModifier(enemy, "modifier_kunkka_x_marks_the_spot") then
+		if Kunkka.Target and not NPC.HasState(Kunkka.Target, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not NPC.IsLinkensProtected(Kunkka.Target) and Kunkka.heroCanCastSpells(myHero, Kunkka.Target) == true then
+			if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
 				if Menu.IsKeyDownOnce(Kunkka.optionComboKey) then
-					if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(Ship)) then
-						if XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(XMark)) then
-							Ability.CastTarget(XMark, enemy)
-							Kunkka.XMarkPos = Entity.GetAbsOrigin(enemy)
+					if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(Ship)) then
+						if XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(XMark)) then
+							Ability.CastTarget(XMark, Kunkka.Target)
+							Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)
 							Kunkka.XMarkCastTime = os.clock() + 1
 							Kunkka.lastTick = os.clock() + 0.1
 							return
 						end
-					elseif XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(XMark)) then
-						Ability.CastTarget(XMark, enemy)
-						Kunkka.XMarkPos = Entity.GetAbsOrigin(enemy)
+					elseif XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(XMark)) then
+						Ability.CastTarget(XMark, Kunkka.Target)
+						Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)
 						Kunkka.XMarkCastTime = os.clock() + 1
 						Kunkka.lastTick = os.clock() + 0.1
 						Kunkka.ComboTimer = os.clock() + 3.08
@@ -106,7 +108,7 @@ function Kunkka.FullCombo(myHero, enemy)
 					end
 				end
 			else
-				if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(Ship)) then
+				if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(Ship)) then
 					Ability.CastPosition(Ship, Kunkka.XMarkPos)
 					Kunkka.ComboTimer = os.clock() + 3.08
 					Kunkka.lastTick = os.clock() + 0.1
@@ -131,6 +133,8 @@ function Kunkka.FullCombo(myHero, enemy)
 			end
 		end
 	end
+	
+	Kunkka.Target = nil
 	return
 end
 
@@ -193,12 +197,10 @@ function Kunkka.heroCanCastSpells(myHero, enemy)
 	return true	
 end
 
-function Kunkka.targetChecker(genericEnemyEntity)
-
-	local myHero = Heroes.GetLocal()
-		if not myHero then return end
-
-	if genericEnemyEntity and not NPC.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
+function Kunkka.targetChecker(genericEnemyEntity, myHero)
+	if not myHero or not genericEnemyEntity then return end
+	
+	if not NPC.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
 
 		if Menu.IsEnabled(Kunkka.optionTargetCheckAM) then
 			if NPC.GetUnitName(genericEnemyEntity) == "npc_dota_hero_antimage" and NPC.HasItem(genericEnemyEntity, "item_ultimate_scepter", true) and NPC.HasModifier(genericEnemyEntity, "modifier_antimage_spell_shield") and Ability.IsReady(NPC.GetAbility(genericEnemyEntity, "antimage_spell_shield")) then
@@ -251,29 +253,12 @@ end
 
 function Kunkka.getComboTarget(myHero)
 	if not myHero then return end
-
-	local targetingRange = Menu.GetValue(Kunkka.optionTargetRange)
 	
-	local mousePos = Input.GetWorldCursorPos()
-
-	local enemyTable = Heroes.InRadius(mousePos, targetingRange, Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_ENEMY)
-		if #enemyTable < 1 then return end
-
-	local nearestTarget = nil
-	local distance = 99999
-
-	for i, v in ipairs(enemyTable) do
-		if v and Entity.IsHero(v) then
-			if Kunkka.targetChecker(v) ~= nil then
-				local enemyDist = (Entity.GetAbsOrigin(v) - mousePos):Length2D()
-				if enemyDist < distance then
-					nearestTarget = v
-					distance = enemyDist
-				end
-			end
-		end
-	end
-	return nearestTarget or nil
+	local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_ENEMY)
+	if enemy == nil then return nil end
+	if Kunkka.targetChecker(enemy, myHero) ~= nil then return enemy end
+	
+	return nil
 end
 
 return Kunkka
