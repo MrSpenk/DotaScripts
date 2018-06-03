@@ -3,9 +3,16 @@ local Lina = {}
 Lina.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Eul's Combo", false)
 Lina.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Lina" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", true)
+
 Lina.optionAutoLaguna = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Activation", false)
+
+Lina.optionLagunaCheckAM = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "AM Shield", true)
+Lina.optionLagunaCheckLotus = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Lotus Orb", true)
+Lina.optionLagunaCheckBladeMail = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Blade Mail", true)
+Lina.optionLagunaCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Nyx Carapace", true)
+Lina.optionLagunaCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Abaddon Ultimate", true)
 Lina.optionLagunaInvisible = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When you're invisible", false)
-Lina.optionLagunaInAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When an enemy has Aegis", false)
+Lina.optionLagunaCheckAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When an enemy has Aegis", false)
 
 Lina.Hero = nil
 Lina.Mana = nil
@@ -84,7 +91,7 @@ function Lina.AutoLaguna()
 			if not NPC.IsIllusion( enemy ) and not Entity.IsDormant( enemy ) and Entity.IsAlive( enemy ) then
 			
 			local throughBKB, damage = Lina.LagunaDamage(enemy)
-			if not Lina.EnemyKillable(enemy, throughBKB) then return end
+			if not Lina.targetChecker(enemy, throughBKB) then return end
 			
 			local enemyHP = math.ceil( Entity.GetHealth( enemy ) +  NPC.GetHealthRegen( enemy ) )
 				
@@ -118,20 +125,6 @@ function Lina.IsHeroInvisible(Hero)
 	end
 	return false
  end
- 
-function Lina.EnemyKillable( enemy, throughBKB )
-	if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end
-	if NPC.HasModifier(enemy, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return false end
-	if NPC.HasModifier(enemy, "modifier_item_aeon_disk_buff") then return false end
-	if NPC.HasModifier(enemy, "modifier_item_blade_mail_reflect") then return false end
-	if NPC.IsLinkensProtected( enemy ) then return false end
-	if NPC.HasModifier(enemy, "modifier_item_lotus_orb_active") then return false end
-
-	if NPC.HasItem(enemy, "item_aegis") then 
-		if not Menu.IsEnabled( Lina.optionLagunaInAegis ) then return false end
-	end
-	return true
-end
 
 function Lina.LagunaDamage(enemy)
 	local amplify = Hero.GetIntellectTotal( Lina.Hero ) * 0.0875
@@ -151,6 +144,55 @@ function Lina.LagunaDamage(enemy)
 	return throughBKB, damage
 end
  
+function Lina.targetChecker(genericEnemyEntity, throughBKB)
+
+	local myHero = Heroes.GetLocal()
+		if not myHero then return end
+
+	if genericEnemyEntity and not Entity.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
+
+		if NPC.HasModifier(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return false end
+	
+		if NPC.IsLinkensProtected( genericEnemyEntity ) then return false end
+	
+		if Menu.IsEnabled(Lina.optionLagunaCheckAM) then
+			if NPC.GetUnitName(genericEnemyEntity) == "npc_dota_hero_antimage" and NPC.HasItem(genericEnemyEntity, "item_ultimate_scepter", true) and NPC.HasModifier(genericEnemyEntity, "modifier_antimage_spell_shield") and Ability.IsReady(NPC.GetAbility(genericEnemyEntity, "antimage_spell_shield")) then return end
+		end
+		
+		if Menu.IsEnabled(Lina.optionLagunaCheckLotus) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_lotus_orb_active") then return end
+		end
+		
+		if Menu.IsEnabled(Lina.optionLagunaCheckBladeMail) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(myHero) <= 0.25 * Entity.GetMaxHealth(myHero) then return end
+		end
+		
+		if Menu.IsEnabled(Lina.optionLagunaCheckNyx) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_nyx_assassin_spiked_carapace") then return end 
+		end
+		
+		if NPC.HasModifier(genericEnemyEntity, "modifier_ursa_enrage") then return end
+		
+		if Menu.IsEnabled(Lina.optionLagunaCheckAbbadon) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_abaddon_borrowed_time") then return end
+		end
+		
+		if NPC.HasModifier(genericEnemyEntity, "modifier_dazzle_shallow_grave") and NPC.GetUnitName(myHero) ~= "npc_dota_hero_axe" then return end
+
+		if NPC.HasModifier(genericEnemyEntity, "modifier_skeleton_king_reincarnation_scepter_active") then return end
+		
+		if NPC.HasModifier(genericEnemyEntity, "modifier_winter_wyvern_winters_curse") then return end
+
+		if NPC.HasState(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end
+
+		if NPC.HasItem(genericEnemyEntity, "item_aegis") then 
+			if not Menu.IsEnabled( Lina.optionLagunaCheckAegis ) then return false end
+		end
+		
+	return genericEnemyEntity
+	end	
+end
+
 function Lina.LockTarget(enemy)
 	if Lina.Target == nil and enemy then Lina.Target = enemy end
 
@@ -195,61 +237,5 @@ function Lina.heroCanCast(Hero)
 	
 	return true
  end
- 
-function Kunkka.targetChecker(genericEnemyEntity)
-
-	local myHero = Heroes.GetLocal()
-		if not myHero then return end
-
-	if genericEnemyEntity and not NPC.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
-
-		if Menu.IsEnabled(Kunkka.optionTargetCheckAM) then
-			if NPC.GetUnitName(genericEnemyEntity) == "npc_dota_hero_antimage" and NPC.HasItem(genericEnemyEntity, "item_ultimate_scepter", true) and NPC.HasModifier(genericEnemyEntity, "modifier_antimage_spell_shield") and Ability.IsReady(NPC.GetAbility(genericEnemyEntity, "antimage_spell_shield")) then
-				return
-			end
-		end
-		
-		if Menu.IsEnabled(Kunkka.optionTargetCheckLotus) then
-			if NPC.HasModifier(genericEnemyEntity, "modifier_item_lotus_orb_active") then
-				return
-			end
-		end
-		
-		if Menu.IsEnabled(Kunkka.optionTargetCheckBlademail) then
-			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(Heroes.GetLocal()) <= 0.25 * Entity.GetMaxHealth(myHero) then
-				return
-			end
-		end
-		
-		if Menu.IsEnabled(Kunkka.optionTargetCheckNyx) then
-			if NPC.HasModifier(genericEnemyEntity, "modifier_nyx_assassin_spiked_carapace") then
-				return
-			end
-		end
-
-		if NPC.HasModifier(genericEnemyEntity, "modifier_ursa_enrage") then
-			return
-		end
-
-		if Menu.IsEnabled(Kunkka.optionTargetCheckAbbadon) then
-			if NPC.HasModifier(genericEnemyEntity, "modifier_abaddon_borrowed_time") then
-				return
-			end
-		end
-			
-		if NPC.HasModifier(genericEnemyEntity, "modifier_dazzle_shallow_grave") and NPC.GetUnitName(myHero) ~= "npc_dota_hero_axe" then
-			return
-		end
-
-		if NPC.HasModifier(genericEnemyEntity, "modifier_skeleton_king_reincarnation_scepter_active") then
-			return
-		end
-		if NPC.HasModifier(genericEnemyEntity, "modifier_winter_wyvern_winters_curse") then
-			return
-		end
-
-	return genericEnemyEntity
-	end	
-end
  
 return Lina
