@@ -1,7 +1,6 @@
 local Kunkka = {}
 
 Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Activation", false)
-Kunkka.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Attack during combo", true)
 Kunkka.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 
 Kunkka.optionTargetCheckAM = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "AM Shield", true)
