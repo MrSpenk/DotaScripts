@@ -9,7 +9,7 @@ Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkk
 Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Nyx Carapace", true)
 Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
 
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 1000)
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 200)
 
 Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
 Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
@@ -213,7 +213,7 @@ function Kunkka.targetChecker(genericEnemyEntity)
 		end
 		
 		if Menu.IsEnabled(Kunkka.optionTargetCheckBlademail) then
-			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(Heroes.GetLocal()) <= 0.25 * Entity.GetMaxHealth(Heroes.GetLocal()) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(Heroes.GetLocal()) <= 0.25 * Entity.GetMaxHealth(myHero) then
 				return
 			end
 		end
@@ -253,6 +253,7 @@ function Kunkka.getComboTarget(myHero)
 	if not myHero then return end
 
 	local targetingRange = Menu.GetValue(Kunkka.optionTargetRange)
+	
 	local mousePos = Input.GetWorldCursorPos()
 
 	local enemyTable = Heroes.InRadius(mousePos, targetingRange, Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_ENEMY)
