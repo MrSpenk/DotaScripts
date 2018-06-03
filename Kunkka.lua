@@ -56,7 +56,6 @@ function Kunkka.OnUpdate()
 	local Torrent = NPC.GetAbility(myHero, "kunkka_torrent")
 	if not myHero or not Torrent then return end
 	
-	
 	Kunkka.needStacker = true
 	
 	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
