@@ -1,212 +1,279 @@
-local Lina = {}
+local Kunkka = {}
 
-Lina.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Eul's Combo", false)
-Lina.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Lina" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
-Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", true)
-Lina.optionAutoLaguna = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "Activation", false)
-Lina.optionLagunaInvisible = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When you're invisible", false)
-Lina.optionLagunaInAegis = Menu.AddOptionBool({ "Hero Specific", "Lina", "Auto Laguna Blade" }, "When an enemy has Aegis", false)
+Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Activation", false)
+Kunkka.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 
-Lina.Hero = nil
-Lina.Mana = nil
+Kunkka.optionTargetCheckAM = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "AM Shield", true)
+Kunkka.optionTargetCheckLotus = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Lotus Orb", true)
+Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Blade Mail", true)
+Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Nyx Carapace", true)
+Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
 
-Lina.Target = nil
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 200)
 
-Lina.Slave = nil
-Lina.Strike = nil
-Lina.Laguna = nil
+Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
+Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
 
-Lina.Eul = nil
-
-function Lina.OnUpdate()
-	if not Menu.IsEnabled( Lina.optionEnable ) then return end
+function Kunkka.init()
+	Kunkka.lastTick = 0
+	Kunkka.ComboTimer = 0
+	Kunkka.XMarkCastTime = 0
+	Kunkka.XMarkPos = Vector()
 	
-	Lina.Hero = Heroes.GetLocal()
-	if not Lina.Hero or NPC.GetUnitName(Lina.Hero) ~= "npc_dota_hero_lina" then return end
-		
-	Lina.Mana = NPC.GetMana(Lina.Hero)
-
-	Lina.Slave = NPC.GetAbility(Lina.Hero, "lina_dragon_slave")
-	Lina.Strike = NPC.GetAbility(Lina.Hero, "lina_light_strike_array")
-	Lina.Laguna = NPC.GetAbility(Lina.Hero, "lina_laguna_blade")
-	
-	Lina.Eul = NPC.GetItem(Lina.Hero, "item_cyclone")
-	if not Lina.Eul then Lina.Eul = nil end
-	
-	if Menu.IsKeyDown( Lina.optionComboKey ) then
-		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Lina.Hero), Enum.TeamType.TEAM_ENEMY)
-		if enemy and not NPC.IsIllusion( enemy ) and Entity.GetHealth( enemy ) > 0 and NPC.IsEntityInRange(Lina.Hero, enemy, 570) then
-
-			Lina.LockTarget(enemy)
-			if Lina.Target == nil then return end
-
-			local pos = Entity.GetAbsOrigin( Lina.Target )
-
-			if Lina.Eul and Lina.heroCanCast( Lina.Hero ) and Ability.IsCastable( Lina.Eul, Lina.Mana ) and Ability.IsReady(Lina.Eul) then
-				Ability.CastTarget(Lina.Eul, Lina.Target, false)
-			end
-
-			local castStrike = NPC.GetTimeToFacePosition(Lina.Hero, pos) + (Ability.GetCastPoint(Lina.Strike) + 0.5) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-
-			if NPC.HasModifier(Lina.Target, "modifier_eul_cyclone") then
-				local cycloneDieTime = Modifier.GetDieTime(NPC.GetModifier(Lina.Target, "modifier_eul_cyclone"))
-
-				if Ability.IsReady( Lina.Strike ) and Ability.IsCastable( Lina.Strike, Lina.Mana ) and cycloneDieTime - GameRules.GetGameTime() <= castStrike then
-					Ability.CastPosition(Lina.Strike, pos, true)
-				end
-
-				local castSlave = NPC.GetTimeToFacePosition(Lina.Hero, pos) + Ability.GetCastPoint(Lina.Slave) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-
-				if Ability.IsCastable( Lina.Slave, Lina.Mana ) and Ability.IsReady( Lina.Slave ) and cycloneDieTime - GameRules.GetGameTime() <= castSlave then
-					Ability.CastPosition(Lina.Slave, pos, true)
-				end
-			end
-
-			if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) and not Menu.IsEnabled( Lina.optionAttack ) then return end
-				Player.AttackTarget(Players.GetLocal(), Lina.Hero, Lina.Target)
-		else
-			Lina.Target = nil
-		end
-	end
-
-	if not Menu.IsEnabled( Lina.optionAutoLaguna ) then return end
-		Lina.AutoLaguna()
+	Kunkka.sizeBar = 32
+	Kunkka.needStacker = false
+	Kunkka.AnchentPoint = {
+	{Vector(73,-1860,384),false},
+	{Vector(476, -4677, 384), false},
+	{Vector(2547, 93, 384), false},
+	{Vector(3911,-575,256), false},
+	{Vector(-2766, 4551, 256), false},
+	{Vector(3911,-575,256), false},
+	{Vector(-1882, 4191, 256), false},
+	{Vector(-4271, 3549, 255), false} }
 end
 
-function Lina.AutoLaguna()
-	if Menu.IsEnabled( Lina.optionAutoLaguna ) then
-		if Lina.IsHeroInvisible(Lina.Hero) and not Menu.IsEnabled( Lina.optionLagunaInvisible ) then return end
-		
-		local heroes = Entity.GetHeroesInRadius(Lina.Hero, Ability.GetCastRange(Lina.Laguna), Enum.TeamType.TEAM_ENEMY)
-		if not heroes then return end
-		
-		for _, enemy in pairs(heroes) do
-			if not NPC.IsIllusion( enemy ) and not Entity.IsDormant( enemy ) and Entity.IsAlive( enemy ) then
+function Kunkka.OnGameStart()
+	Kunkka.init()
+end
+
+function Kunkka.OnGameEnd()
+	Kunkka.init()
+end
+
+Kunkka.init()
+
+function Kunkka.OnUpdate()
+	if not Menu.IsEnabled( Kunkka.optionEnable ) then return end
+	
+	local myHero = Heroes.GetLocal()
+	if not myHero or NPC.GetUnitName(myHero) ~= "npc_dota_hero_kunkka" then return end
+	
+	local enemy = Kunkka.getComboTarget(myHero)
+	if enemy then Kunkka.FullCombo(myHero, enemy) end
+	
+	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
+	local Torrent = NPC.GetAbility(myHero, "kunkka_torrent")
+	if not myHero or not Torrent then return end
+	
+	Kunkka.needStacker = true
+	
+	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
+		if Ability.IsReady(Torrent) then
+			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
 			
-				local throughBKB, damage = Lina.LagunaDamage(enemy)
-				if not Lina.EnemyKillable(enemy, throughBKB) then return end
-				
-				local enemyHP = math.ceil( Entity.GetHealth( enemy ) +  NPC.GetHealthRegen( enemy ) )
-				
-				if enemyHP <= damage then
-					if not Ability.IsCastable( Lina.Laguna, Lina.Mana ) or not Ability.IsReady( Lina.Laguna ) then return end
-					Ability.CastTarget(Lina.Laguna, enemy)
+			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
+				for _,camp in pairs(Kunkka.AnchentPoint) do
+					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Torrent)) then
+						Ability.CastPosition(Torrent,camp[1])
+					end
 				end
 			end
 		end
 	end
 end
 
-function Lina.IsHeroInvisible(Hero)
-	if NPC.HasState(Hero, Enum.ModifierState.MODIFIER_STATE_INVISIBLE) then return true end
-	if NPC.HasModifier(Hero, "modifier_invoker_ghost_walk_self") then return true end
-	if NPC.HasAbility(Hero, "invoker_ghost_walk") then
-		if Ability.SecondsSinceLastUse(NPC.GetAbility(Hero, "invoker_ghost_walk")) > -1 and Ability.SecondsSinceLastUse(NPC.GetAbility(Hero, "invoker_ghost_walk")) < 1 then 
-			return true
+function Kunkka.FullCombo(myHero, enemy)
+	if not Menu.IsEnabled(Kunkka.optionEnable) then return end
+
+  	local Torrent = NPC.GetAbility(myHero, "kunkka_torrent")
+ 	local XMark = NPC.GetAbility(myHero, "kunkka_x_marks_the_spot")
+	local Xreturn = NPC.GetAbility(myHero, "kunkka_return")
+	local Ship = NPC.GetAbility(myHero, "kunkka_ghostship")
+	local myMana = NPC.GetMana(myHero)
+
+	if os.clock() < Kunkka.lastTick then return end
+
+	if Kunkka.ComboTimer < os.clock() then
+		if enemy and Entity.IsAlive(enemy) and not NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not NPC.IsLinkensProtected(enemy) and Kunkka.heroCanCastSpells(myHero, enemy) == true then
+			if not NPC.HasModifier(enemy, "modifier_kunkka_x_marks_the_spot") then
+				if Menu.IsKeyDownOnce(Kunkka.optionComboKey) then
+					if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(Ship)) then
+						if XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(XMark)) then
+							Ability.CastTarget(XMark, enemy)
+							Kunkka.XMarkPos = Entity.GetAbsOrigin(enemy)
+							Kunkka.XMarkCastTime = os.clock() + 1
+							Kunkka.lastTick = os.clock() + 0.1
+							return
+						end
+					elseif XMark and Ability.IsCastable(XMark, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(XMark)) then
+						Ability.CastTarget(XMark, enemy)
+						Kunkka.XMarkPos = Entity.GetAbsOrigin(enemy)
+						Kunkka.XMarkCastTime = os.clock() + 1
+						Kunkka.lastTick = os.clock() + 0.1
+						Kunkka.ComboTimer = os.clock() + 3.08
+						return
+					end
+				end
+			else
+				if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, enemy, Ability.GetCastRange(Ship)) then
+					Ability.CastPosition(Ship, Kunkka.XMarkPos)
+					Kunkka.ComboTimer = os.clock() + 3.08
+					Kunkka.lastTick = os.clock() + 0.1
+					return
+				end
+			end
 		end
-	end
-
-	if NPC.HasItem(Hero, "item_invis_sword", true) then
-		if Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_invis_sword", true)) > -1 and Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_invis_sword", true)) < 1 then 
-			return true
-		end
-	end
-	if NPC.HasItem(Hero, "item_silver_edge", true) then
-		if Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_silver_edge", true)) > -1 and Ability.SecondsSinceLastUse(NPC.GetItem(Hero, "item_silver_edge", true)) < 1 then 
-			return true
-		end
-	end
-	return false
-end
-
-function Lina.EnemyKillable( enemy, throughBKB )
-
-	if NPC.HasState(enemy, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end
-	if NPC.HasModifier(enemy, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return false end
-	if NPC.HasModifier(enemy, "modifier_item_aeon_disk_buff") then return false end
-	if NPC.HasModifier(enemy, "modifier_item_blade_mail_reflect") then return false end
-	if NPC.IsLinkensProtected( enemy ) then return false end
-	if NPC.HasModifier(enemy, "modifier_item_lotus_orb_active") then return false end
-	
-	if NPC.HasItem(enemy, "item_aegis") then 
-		if not Menu.IsEnabled( Lina.optionLagunaInAegis ) then return false end
-	end
-
-	return true
-end
-
-function Lina.LagunaDamage(enemy)
-	local amplify = Hero.GetIntellectTotal( Lina.Hero ) * 0.0875
-	local kaya = NPC.GetItem( Lina.Hero, "item_kaya" )
-	
-	if Ability.GetLevel(NPC.GetAbility(Lina.Hero, "special_bonus_spell_amplify_12")) > 0 then amplify = amplify + 12 end
-	if kaya then amplify = amplify + 10 end
-	
-	local damage = math.floor(Ability.GetDamage( Lina.Laguna ) + ( Ability.GetDamage( Lina.Laguna ) * ( amplify / 100 ) ))
-	
-	if NPC.HasModifier(Lina.Hero, "modifier_wisp_tether_scepter") or NPC.HasModifier(Lina.Hero, "modifier_item_ultimate_scepter") or NPC.HasModifier(Lina.Hero, "modifier_item_ultimate_scepter_consumed") then
-		local throughBKB = true
 	else
-		local throughBKB = false
-		damage = NPC.GetMagicalArmorDamageMultiplier(enemy) * damage
+		if Kunkka.ComboTimer - os.clock() <= 2.05 then
+			if Torrent and Ability.IsCastable(Torrent, myMana) then
+				Ability.CastPosition(Torrent, Kunkka.XMarkPos)
+				Kunkka.lastTick = os.clock() + 0.1
+				return
+			end
+		end
+
+		if Kunkka.ComboTimer - os.clock() <= 0.55 then
+			if Xreturn and Ability.IsCastable(Xreturn, myMana) then
+				Ability.CastNoTarget(Xreturn)
+				Kunkka.lastTick = os.clock() + 0.1
+				return
+			end
+		end
 	end
-	
-	return throughBKB, damage
+	return
 end
 
-function Lina.LockTarget(enemy)
-	if Lina.Target == nil and enemy then Lina.Target = enemy end
+function Kunkka.OnDraw()
+	if not Kunkka.needStacker then return end
 	
-	if Lina.Target ~= nil then
-		if not Entity.IsAlive(Lina.Target) then
-			Lina.Target = nil
-		elseif Entity.IsDormant(Lina.Target) then
-			Lina.Target = nil
-		elseif not NPC.IsEntityInRange(Lina.Hero, Lina.Target, 570) then
-			Lina.Target = nil
+	for _,camp in pairs(Kunkka.AnchentPoint) do
+		if camp then
+			local X,Y,vis = Renderer.WorldToScreen(camp[1])
+			if vis then
+				if camp[2] then
+					Renderer.SetDrawColor(0,255,0,150)
+				else
+					Renderer.SetDrawColor(255,0,0,150)
+				end
+				Renderer.DrawFilledRect(X - Kunkka.sizeBar / 2, Y - Kunkka.sizeBar / 2, Kunkka.sizeBar, Kunkka.sizeBar)
+			end
+		
+			if Input.IsCursorInRect(X - Kunkka.sizeBar / 2, Y - Kunkka.sizeBar / 2, Kunkka.sizeBar, Kunkka.sizeBar) then
+				if Menu.IsKeyDownOnce(Kunkka.optionStakerKey) then
+					camp[2] = not camp[2]
+				end
+			end
 		end
 	end
 end
 
-function Lina.heroCanCast(Hero)
-	if not Hero then return false end
-	if not Entity.IsAlive(Hero) then return false end
+function Kunkka.heroCanCastSpells(myHero, enemy)
+	if not myHero then return false end
+	if not Entity.IsAlive(myHero) then return false end
 
-	if NPC.IsStunned(Hero) then return false end
-	if NPC.HasModifier(Hero, "modifier_bashed") then return false end
-	if NPC.HasState(Hero, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end	
-	if NPC.HasModifier(Hero, "modifier_obsidian_destroyer_astral_imprisonment_prison") then return false end
-	if NPC.HasModifier(Hero, "modifier_shadow_demon_disruption") then return false end	
-	if NPC.HasModifier(Hero, "modifier_invoker_tornado") then return false end
-	if NPC.HasState(Hero, Enum.ModifierState.MODIFIER_STATE_HEXED) then return false end
-	if NPC.HasModifier(Hero, "modifier_legion_commander_duel") then return false end
-	if NPC.HasModifier(Hero, "modifier_axe_berserkers_call") then return false end
-	if NPC.HasModifier(Hero, "modifier_winter_wyvern_winters_curse") then return false end
-	if NPC.HasModifier(Hero, "modifier_bane_fiends_grip") then return false end
-	if NPC.HasModifier(Hero, "modifier_bane_nightmare") then return false end
-	if NPC.HasModifier(Hero, "modifier_faceless_void_chronosphere_freeze") then return false end
-	if NPC.HasModifier(Hero, "modifier_enigma_black_hole_pull") then return false end
-	if NPC.HasModifier(Hero, "modifier_magnataur_reverse_polarity") then return false end
-	if NPC.HasModifier(Hero, "modifier_pudge_dismember") then return false end
-	if NPC.HasModifier(Hero, "modifier_shadow_shaman_shackles") then return false end
-	if NPC.HasModifier(Hero, "modifier_techies_stasis_trap_stunned") then return false end
-	if NPC.HasModifier(Hero, "modifier_storm_spirit_electric_vortex_pull") then return false end
-	if NPC.HasModifier(Hero, "modifier_tidehunter_ravage") then return false end
-	if NPC.HasModifier(Hero, "modifier_windrunner_shackle_shot") then return false end
-	if NPC.HasModifier(Hero, "modifier_item_nullifier_mute") then return false end
+	if NPC.IsSilenced(myHero) then return false end 
+	if NPC.IsStunned(myHero) then return false end
+	if NPC.HasModifier(myHero, "modifier_bashed") then return false end
+	if NPC.HasState(myHero, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end	
+	if NPC.HasModifier(myHero, "modifier_eul_cyclone") then return false end
+	if NPC.HasModifier(myHero, "modifier_obsidian_destroyer_astral_imprisonment_prison") then return false end
+	if NPC.HasModifier(myHero, "modifier_shadow_demon_disruption") then return false end	
+	if NPC.HasModifier(myHero, "modifier_invoker_tornado") then return false end
+	if NPC.HasState(myHero, Enum.ModifierState.MODIFIER_STATE_HEXED) then return false end
+	if NPC.HasModifier(myHero, "modifier_legion_commander_duel") then return false end
+	if NPC.HasModifier(myHero, "modifier_axe_berserkers_call") then return false end
+	if NPC.HasModifier(myHero, "modifier_winter_wyvern_winters_curse") then return false end
+	if NPC.HasModifier(myHero, "modifier_bane_fiends_grip") then return false end
+	if NPC.HasModifier(myHero, "modifier_bane_nightmare") then return false end
+	if NPC.HasModifier(myHero, "modifier_faceless_void_chronosphere_freeze") then return false end
+	if NPC.HasModifier(myHero, "modifier_enigma_black_hole_pull") then return false end
+	if NPC.HasModifier(myHero, "modifier_magnataur_reverse_polarity") then return false end
+	if NPC.HasModifier(myHero, "modifier_pudge_dismember") then return false end
+	if NPC.HasModifier(myHero, "modifier_shadow_shaman_shackles") then return false end
+	if NPC.HasModifier(myHero, "modifier_techies_stasis_trap_stunned") then return false end
+	if NPC.HasModifier(myHero, "modifier_storm_spirit_electric_vortex_pull") then return false end
+	if NPC.HasModifier(myHero, "modifier_tidehunter_ravage") then return false end
+	if NPC.HasModifier(myHero, "modifier_windrunner_shackle_shot") then return false end
+	if NPC.HasModifier(myHero, "modifier_item_nullifier_mute") then return false end
 
-	return true
+	if enemy then
+		if NPC.HasModifier(enemy, "modifier_item_aeon_disk_buff") then return false end
+	end
+	return true	
 end
 
-function Lina.isHeroChannelling(Hero)
+function Kunkka.targetChecker(genericEnemyEntity)
 
-	if not Hero then return true end
+	local myHero = Heroes.GetLocal()
+		if not myHero then return end
 
-	if NPC.IsChannellingAbility(Hero) then return true end
-	if NPC.HasModifier(Hero, "modifier_teleporting") then return true end
+	if genericEnemyEntity and not NPC.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
 
-	return false
+		if Menu.IsEnabled(Kunkka.optionTargetCheckAM) then
+			if NPC.GetUnitName(genericEnemyEntity) == "npc_dota_hero_antimage" and NPC.HasItem(genericEnemyEntity, "item_ultimate_scepter", true) and NPC.HasModifier(genericEnemyEntity, "modifier_antimage_spell_shield") and Ability.IsReady(NPC.GetAbility(genericEnemyEntity, "antimage_spell_shield")) then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckLotus) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_lotus_orb_active") then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckBlademail) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_item_blade_mail_reflect") and Entity.GetHealth(Heroes.GetLocal()) <= 0.25 * Entity.GetMaxHealth(myHero) then
+				return
+			end
+		end
+		
+		if Menu.IsEnabled(Kunkka.optionTargetCheckNyx) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_nyx_assassin_spiked_carapace") then
+				return
+			end
+		end
 
+		if NPC.HasModifier(genericEnemyEntity, "modifier_ursa_enrage") then
+			return
+		end
+
+		if Menu.IsEnabled(Kunkka.optionTargetCheckAbbadon) then
+			if NPC.HasModifier(genericEnemyEntity, "modifier_abaddon_borrowed_time") then
+				return
+			end
+		end
+			
+		if NPC.HasModifier(genericEnemyEntity, "modifier_dazzle_shallow_grave") and NPC.GetUnitName(myHero) ~= "npc_dota_hero_axe" then
+			return
+		end
+
+		if NPC.HasModifier(genericEnemyEntity, "modifier_skeleton_king_reincarnation_scepter_active") then
+			return
+		end
+		if NPC.HasModifier(genericEnemyEntity, "modifier_winter_wyvern_winters_curse") then
+			return
+		end
+
+	return genericEnemyEntity
+	end	
 end
 
-return Lina
+function Kunkka.getComboTarget(myHero)
+	if not myHero then return end
+
+	local targetingRange = Menu.GetValue(Kunkka.optionTargetRange)
+	
+	local mousePos = Input.GetWorldCursorPos()
+
+	local enemyTable = Heroes.InRadius(mousePos, targetingRange, Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_ENEMY)
+		if #enemyTable < 1 then return end
+
+	local nearestTarget = nil
+	local distance = 99999
+
+	for i, v in ipairs(enemyTable) do
+		if v and Entity.IsHero(v) then
+			if Kunkka.targetChecker(v) ~= nil then
+				local enemyDist = (Entity.GetAbsOrigin(v) - mousePos):Length2D()
+				if enemyDist < distance then
+					nearestTarget = v
+					distance = enemyDist
+				end
+			end
+		end
+	end
+	return nearestTarget or nil
+end
+
+return Kunkka
