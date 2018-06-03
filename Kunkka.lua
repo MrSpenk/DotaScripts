@@ -9,7 +9,7 @@ Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkk
 Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Nyx Carapace", true)
 Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
 
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 200)
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 1000)
 
 Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
 Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
