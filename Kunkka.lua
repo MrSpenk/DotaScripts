@@ -53,18 +53,20 @@ function Kunkka.OnUpdate()
 	if enemy then Kunkka.FullCombo(myHero, enemy) end
 	
 	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
-	if not myHero or not Kunkka.Torrent then return end
+	local Torrent = NPC.GetAbility(myHero, "kunkka_torrent")
+	if not myHero or not Torrent then return end
+	
 	
 	Kunkka.needStacker = true
 	
 	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
-		if Ability.IsReady(Kunkka.Torrent) then
+		if Ability.IsReady(Torrent) then
 			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
 			
 			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
 				for _,camp in pairs(Kunkka.AnchentPoint) do
-					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Kunkka.Torrent)) then
-						Ability.CastPosition(Kunkka.Torrent,camp[1])
+					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Torrent)) then
+						Ability.CastPosition(Torrent,camp[1])
 					end
 				end
 			end
