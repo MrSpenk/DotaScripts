@@ -15,7 +15,6 @@ Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Aut
 Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
 
 function Kunkka.init()
-	Kunkka.lastTick = 0
 	Kunkka.ComboTimer = 0
 	Kunkka.XMarkCastTime = 0
 	Kunkka.XMarkPos = Vector()
@@ -101,13 +100,14 @@ function Kunkka.OnUpdate()
 
 		if Kunkka.ComboTimer - os.clock() <= 0.55 then
 			if XMarkreturn and Ability.IsCastable(XMarkreturn, myMana) then
-				Ability.CastNoTarget(XMarkreturn)
-
 				Kunkka.Target = nil
 				Kunkka.ComboTimer = 0
+				
+				Ability.CastNoTarget(XMarkreturn)
 				return
 			end
 		end
+		Kunkka.Target = nil
 	end
 	
 	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
@@ -254,7 +254,6 @@ function Kunkka.getComboTarget(myHero)
 			end
 		end
 	end
-
 	return nearestTarget or nil
 end
 
