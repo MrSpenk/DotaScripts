@@ -96,6 +96,9 @@ function Kunkka.OnUpdate()
 					end
 				end
 				
+				if not Menu.IsKeyDownOnce(Kunkka.optionTorrentComboKey) and not Menu.IsKeyDownOnce(Kunkka.optionShipComboKey) then
+					Kunkka.Target = nil
+				end
 			else
 				if Kunkka.startShipCombo then
 					if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(Ship)) then
