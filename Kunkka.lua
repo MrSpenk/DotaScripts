@@ -3,13 +3,13 @@ local Kunkka = {}
 Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Activation", false)
 Kunkka.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Radius around the cursor", 50, 300, 50)
+
 Kunkka.optionTargetCheckAM = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "AM Shield", true)
 Kunkka.optionTargetCheckLotus = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Lotus Orb", true)
 Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Blade Mail", true)
 Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "NyXMark Carapace", true)
 Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
-
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Target search range", 50, 1000, 400)
 
 Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
 Kunkka.optionStakerKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Key on/off stack in spot", Enum.ButtonCode.BUTTON_CODE_NONE)
@@ -19,6 +19,9 @@ function Kunkka.init()
 	Kunkka.ComboTimer = 0
 	Kunkka.XMarkCastTime = 0
 	Kunkka.XMarkPos = Vector()
+	
+	Kunkka.cshotParticle = 0
+	Kunkka.particleEnemy = nil
 	
 	Kunkka.sizeBar = 32
 	Kunkka.needStacker = false
@@ -56,8 +59,6 @@ function Kunkka.OnUpdate()
 
 	local myMana = NPC.GetMana(myHero)
 
-	if os.clock() < Kunkka.lastTick then return end
-
 	local enemy = Kunkka.getComboTarget(myHero)
 	if Kunkka.Target == nil then Kunkka.Target = enemy end
 	
@@ -70,7 +71,6 @@ function Kunkka.OnUpdate()
 							Ability.CastTarget(XMark, Kunkka.Target)
 							Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)
 							Kunkka.XMarkCastTime = os.clock() + 1
-							Kunkka.lastTick = os.clock() + 0.1
 							return
 						end
 					else
@@ -79,7 +79,6 @@ function Kunkka.OnUpdate()
 							Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)
 							Kunkka.ComboTimer = os.clock() + 3.08
 							Kunkka.XMarkCastTime = os.clock() + 1
-							Kunkka.lastTick = os.clock() + 0.1
 							return
 						end
 					end
@@ -88,7 +87,6 @@ function Kunkka.OnUpdate()
 				if Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(Ship)) then
 					Ability.CastPosition(Ship, Kunkka.XMarkPos)
 					Kunkka.ComboTimer = os.clock() + 3.08
-					Kunkka.lastTick = os.clock() + 0.1
 					return
 				end
 			end
@@ -97,7 +95,6 @@ function Kunkka.OnUpdate()
 		if Kunkka.ComboTimer - os.clock() <= 2.05 then
 			if Torrent and Ability.IsCastable(Torrent, myMana) then
 				Ability.CastPosition(Torrent, Kunkka.XMarkPos)
-				Kunkka.lastTick = os.clock() + 0.1
 				return
 			end
 		end
@@ -105,8 +102,9 @@ function Kunkka.OnUpdate()
 		if Kunkka.ComboTimer - os.clock() <= 0.55 then
 			if XMarkreturn and Ability.IsCastable(XMarkreturn, myMana) then
 				Ability.CastNoTarget(XMarkreturn)
-				Kunkka.lastTick = os.clock() + 0.1
+
 				Kunkka.Target = nil
+				Kunkka.ComboTimer = 0
 				return
 			end
 		end
@@ -122,7 +120,7 @@ function Kunkka.OnUpdate()
 		if Ability.IsReady(Torrent) then
 			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
 			
-			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAXMark_FLOWS) then
+			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
 				for _,camp in pairs(Kunkka.AnchentPoint) do
 					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Torrent)) then
 						Ability.CastPosition(Torrent,camp[1])
@@ -162,7 +160,7 @@ function Kunkka.heroCanCastSpells(myHero, enemy)
 	if not myHero then return false end
 	if not Entity.IsAlive(myHero) then return false end
 
-	if NPC.IsSilenced(myHero) then return false end 
+	if NPC.IsSilenced(myHero) then return false end
 	if NPC.IsStunned(myHero) then return false end
 	if NPC.HasModifier(myHero, "modifier_bashed") then return false end
 	if NPC.HasState(myHero, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end	
@@ -191,8 +189,7 @@ function Kunkka.heroCanCastSpells(myHero, enemy)
 		if NPC.HasModifier(enemy, "modifier_item_aeon_disk_buff") then return false end
 	end
 
-	return true	
-
+	return true
 end
 
 function Kunkka.targetChecker(genericEnemyEntity)
@@ -259,7 +256,6 @@ function Kunkka.getComboTarget(myHero)
 	end
 
 	return nearestTarget or nil
-
 end
 
 return Kunkka
