@@ -133,19 +133,19 @@ function Kunkka.OnUpdate()
 	
 --------------------------------------------------- Auto Stacker ---------------------------------------------------
 	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
-	if not myHero or not Torrent then return end
+	if not myHero or not Q then return end
 	
 	Kunkka.needStacker = true
 	
 	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
-		if Ability.IsReady(Torrent) then
+		if Ability.IsReady(Q) then
 			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
 			
 			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
 				for i = 0, #Kunkka.AnchentPoint do
 					local camp = Kunkka.AnchentPoint[i]
-					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Torrent)) then
-						Ability.CastPosition(Torrent,camp[1])
+					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Q)) then
+						Ability.CastPosition(Q,camp[1])
 					end
 				end
 			end
