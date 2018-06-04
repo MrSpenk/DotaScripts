@@ -140,10 +140,8 @@ function Kunkka.OnUpdate()
 	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
 		if Ability.IsReady(Q) then
 			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
-			
 			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
-				for i = 0, #Kunkka.AnchentPoint do
-					local camp = Kunkka.AnchentPoint[i]
+				for _,camp in pairs(Kunkka.AnchentPoint) do
 					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Q)) then
 						Ability.CastPosition(Q,camp[1])
 					end
@@ -156,8 +154,7 @@ end
 function Kunkka.OnDraw()
 	if not Kunkka.needStacker then return end
 	
-	for i = 0, #Kunkka.AnchentPoint do
-		local camp = Kunkka.AnchentPoint[i]
+	for _,camp in pairs(Kunkka.AnchentPoint) do
 		if camp then
 			local X,Y,vis = Renderer.WorldToScreen(camp[1])
 			if vis then
