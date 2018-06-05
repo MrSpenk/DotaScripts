@@ -5,7 +5,7 @@ Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Activat
 Kunkka.optionShipComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Full Combo", Enum.ButtonCode.BUTTON_CODE_NONE)
 Kunkka.optionTorrentComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Torrent Combo", Enum.ButtonCode.BUTTON_CODE_NONE)
 
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Radius around the cursor", 100, 500, 140)
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Radius around the cursor", 100, 500, 150)
 
 Kunkka.optionTargetCheckAM = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "AM Shield", true)
 Kunkka.optionTargetCheckLotus = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Lotus Orb", true)
@@ -64,8 +64,7 @@ function Kunkka.OnUpdate()
 	
 	if os.clock() < Kunkka.lastTick then return end
 	
-	local enemy = Kunkka.getComboTarget(myHero)
-	if Kunkka.Target == nil then Kunkka.Target = enemy end
+	Kunkka.Target = Kunkka.getComboTarget(myHero)
 	
 	if Kunkka.ComboTimer < os.clock() then
 		if Kunkka.Target and Kunkka.heroCanCastSpells(myHero) then
@@ -81,23 +80,22 @@ function Kunkka.OnUpdate()
 					if not(Ship and Ability.IsCastable(Ship, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(Ship))) then
 						Kunkka.startShipCombo = false
 						Kunkka.ComboTimer = os.clock() + 3.08
-						return
 					end
+					
+					return
 				end
-				
+			
 				if Menu.IsKeyDownOnce(Kunkka.optionTorrentComboKey) then
 					if X and Ability.IsCastable(X, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(X)) then
+						Kunkka.startShipCombo = false
 						Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)	
 						Ability.CastTarget(X, Kunkka.Target)
 						Kunkka.XMarkCastTime = os.clock() + 1
 						Kunkka.ComboTimer = os.clock() + 3.08
 						Kunkka.lastTick = os.clock() + 0.1
-						return
 					end
-				end
-				
-				if not Menu.IsKeyDownOnce(Kunkka.optionTorrentComboKey) and not Menu.IsKeyDownOnce(Kunkka.optionShipComboKey) then
-					Kunkka.Target = nil
+					
+					return
 				end
 			else
 				if Kunkka.startShipCombo then
@@ -105,9 +103,10 @@ function Kunkka.OnUpdate()
 						Ability.CastPosition(Ship, Kunkka.XMarkPos)
 						Kunkka.ComboTimer = os.clock() + 3.08
 						Kunkka.lastTick = os.clock() + 0.1
-						return
 					end
 				end
+				
+				return
 			end
 		end
 	else
@@ -115,7 +114,6 @@ function Kunkka.OnUpdate()
 			if Q and Ability.IsCastable(Q, myMana) then
 				Ability.CastPosition(Q, Kunkka.XMarkPos)
 				Kunkka.lastTick = os.clock() + 0.1
-				return
 			end
 		end
 
@@ -129,9 +127,12 @@ function Kunkka.OnUpdate()
 		
 		if Kunkka.ComboTimer - os.clock() <= 0.1 then
 			Kunkka.Target = nil
+			Kunkka.XMarkPos = nil
 			startShipCombo = false
 			return
 		end
+		
+		return
 	end
 	
 --------------------------------------------------- Auto Stacker ---------------------------------------------------
