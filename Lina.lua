@@ -21,7 +21,7 @@ function Lina.OnUpdate()
 	if not Lina.Hero or NPC.GetUnitName(Lina.Hero) ~= "npc_dota_hero_lina" then return end
 	
 	Lina.Mana = NPC.GetMana(Lina.Hero)
-	 
+	
 	Lina.Slave = NPC.GetAbility(Lina.Hero, "lina_dragon_slave")
 	Lina.Strike = NPC.GetAbility(Lina.Hero, "lina_light_strike_array")
 	Lina.Laguna = NPC.GetAbility(Lina.Hero, "lina_laguna_blade")
@@ -30,9 +30,10 @@ function Lina.OnUpdate()
 	if not Lina.Eul then Lina.Eul = nil end
 
 	if Menu.IsKeyDown( Lina.optionComboKey ) then
+		Log.Write("1")
 		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Lina.Hero), Enum.TeamType.TEAM_ENEMY)
 		if enemy and not Entity.IsDormant(enemy) and not NPC.IsIllusion(enemy) and Entity.GetHealth(enemy) > 0 then
-	 
+			Log.Write("2")
 			Lina.LockTarget(enemy)
 			if Lina.Target == nil then return end
 	 
@@ -72,7 +73,7 @@ function Lina.OnUpdate()
 		Lina.Target = nil
 	end
 	
-	if not Menu.IsEnabled( Lina.optionAutoLaguna ) then
+	if Menu.IsEnabled( Lina.optionAutoLaguna ) then
 		Lina.AutoLaguna()
 	end
 	
