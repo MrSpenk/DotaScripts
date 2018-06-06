@@ -19,7 +19,8 @@ function MineDestroyer.OnUpdate()
 	if radius < 430 then radius = 430 end
 		
 	local npcs = Entity.GetUnitsInRadius(myHero, radius, Enum.TeamType.TEAM_ENEMY)
-		
+	if not npcs or #npcs < 1 then return end
+	
 	for _,npc in pairs(npcs) do
 		if npc and not Entity.IsSameTeam(myHero, npc) then
 			local name = NPC.GetUnitName( npc )
