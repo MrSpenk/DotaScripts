@@ -131,8 +131,6 @@ function Kunkka.OnUpdate()
 			startShipCombo = false
 			return
 		end
-		
-		return
 	end
 	
 --------------------------------------------------- Auto Stacker ---------------------------------------------------
