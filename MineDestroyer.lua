@@ -37,11 +37,10 @@ function MineDestroyer.Attack(myHero, target)
 	
 	if not Menu.IsEnabled( MineDestroyer.optionInvAttack ) and MineDestroyer.IsHeroInvisible(myHero) == true then return end
 	
-	if MineDestroyer.isHeroChannelling(myHero) == true then return end
-	if MineDestroyer.heroCanCastItems(myHero) == false then return end
+	if MineDestroyer.isHeroChannelling(myHero) then return end
+	if not MineDestroyer.heroCanCastItems(myHero) then return end
 	
 	if target ~= nil then
-	
 		if not Menu.IsEnabled( MineDestroyer.optionEnable ) then return end
 		Player.AttackTarget(Players.GetLocal(), myHero, target)
 	end
@@ -107,14 +106,12 @@ function MineDestroyer.heroCanCastItems(myHero)
 end
 
 function MineDestroyer.isHeroChannelling(myHero)
-
 	if not myHero then return true end
 
 	if NPC.IsChannellingAbility(myHero) then return true end
 	if NPC.HasModifier(myHero, "modifier_teleporting") then return true end
 
 	return false
-
 end
 
 return MineDestroyer
