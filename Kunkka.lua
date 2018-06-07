@@ -110,6 +110,13 @@ function Kunkka.OnUpdate()
 			end
 		end
 	else
+		if not Kunkka.XMarkPos then
+			Kunkka.Target = nil
+			Kunkka.XMarkPos = nil
+			startShipCombo = false
+			return
+		end
+		
 		if Kunkka.ComboTimer - os.clock() <= 2.05 then
 			if Q and Ability.IsCastable(Q, myMana) then
 				Ability.CastPosition(Q, Kunkka.XMarkPos)
@@ -121,7 +128,6 @@ function Kunkka.OnUpdate()
 			if Xreturn and Ability.IsCastable(Xreturn, myMana) then
 				Ability.CastNoTarget(Xreturn)
 				Kunkka.lastTick = os.clock() + 0.1
-				return
 			end
 		end
 		
@@ -129,7 +135,6 @@ function Kunkka.OnUpdate()
 			Kunkka.Target = nil
 			Kunkka.XMarkPos = nil
 			startShipCombo = false
-			return
 		end
 	end
 	
