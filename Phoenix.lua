@@ -2,6 +2,8 @@ local Phoenix = {}
 
 Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Auto Fire Spirit", false)
 Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Sun Ray Aim", false)
+Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix" }, "Targeting style", {" Locked target", " Free target"}, 0)
+Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 700, 150)
 Phoenix.posList = {}
 
 function Phoenix.OnPrepareUnitOrders(orders)
@@ -59,11 +61,28 @@ end
 function Phoenix.SunRay(myHero)
     if not NPC.HasModifier(myHero, "modifier_phoenix_sun_ray") then return end
 
-    local npc = Input.GetNearestHeroToCursor(Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_BOTH)
-    if not npc or not Phoenix.CanCastSpellOn(npc) then return end
-    if not NPC.IsPositionInRange(npc, Input.GetWorldCursorPos(), 500, 0) then return end
+	local npc = Phoenix.getComboTarget(myHero)
+	
+	if Menu.GetValue(Phoenix.optionTargetStyle) < 1 then
+		if Phoenix.LockedTarget == nil then
+			if npc then
+				Phoenix.LockedTarget = npc
+				else
+				Phoenix.LockedTarget = nil
+			end
+		end
+	else
+		if npc then
+			Phoenix.LockedTarget = npc
+		else
+			Phoenix.LockedTarget = nil
+		end
+	end
+	
+    if not Phoenix.LockedTarget or not Phoenix.CanCastSpellOn(Phoenix.LockedTarget) then return end
+    if not NPC.IsPositionInRange(Phoenix.LockedTarget, Input.GetWorldCursorPos(), 700, 0) then return end
 
-    Player.PrepareUnitOrders(Players.GetLocal(), Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_TO_POSITION, npc, Entity.GetAbsOrigin(npc), nil, Enum.PlayerOrderIssuer.DOTA_ORDER_ISSUER_PASSED_UNIT_ONLY, myHero)
+    Player.PrepareUnitOrders(Players.GetLocal(), Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_TO_POSITION, Phoenix.LockedTarget, Entity.GetAbsOrigin(Phoenix.LockedTarget), nil, Enum.PlayerOrderIssuer.DOTA_ORDER_ISSUER_PASSED_UNIT_ONLY, myHero)
 end
 
 function Phoenix.CanCastSpellOn(npc)
@@ -161,6 +180,23 @@ function Phoenix.PositionIsCovered(pos)
     end
 
     return false
+end
+
+function Phoenix.getComboTarget(myHero)
+	if not myHero then return end
+
+	local targetingRange = Menu.GetValue(Phoenix.optionTargetRange)
+	local mousePos = Input.GetWorldCursorPos()
+	
+	local heroes = Input.GetNearestHeroToCursor(Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_BOTH)
+	if not heroes then return end 
+
+	local enemyDist = (Entity.GetAbsOrigin(heroes) - mousePos):Length2D()
+	if enemyDist <= targetingRange then
+		return heroes
+	end
+	
+	return nil
 end
 
 return Phoenix
