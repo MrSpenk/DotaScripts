@@ -3,7 +3,7 @@ local Phoenix = {}
 Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Auto Fire Spirit", false)
 Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Sun Ray Aim", false)
 Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix" }, "Targeting style", {" Locked target", " Free target"}, 0)
-Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 700, 150)
+Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 300, 150)
 Phoenix.posList = {}
 
 function Phoenix.OnPrepareUnitOrders(orders)
