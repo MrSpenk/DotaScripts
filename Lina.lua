@@ -30,10 +30,8 @@ function Lina.OnUpdate()
 	if not Lina.Eul then Lina.Eul = nil end
 
 	if Menu.IsKeyDown( Lina.optionComboKey ) then
-		Log.Write("1")
 		local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(Lina.Hero), Enum.TeamType.TEAM_ENEMY)
 		if enemy and not Entity.IsDormant(enemy) and not NPC.IsIllusion(enemy) and Entity.GetHealth(enemy) > 0 then
-			Log.Write("2")
 			Lina.LockTarget(enemy)
 			if Lina.Target == nil then return end
 	 
@@ -129,6 +127,8 @@ function Lina.targetChecker(genericEnemyEntity, throughBKB)
 	if genericEnemyEntity and not Entity.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
 
 		if NPC.HasModifier(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return end
+	
+		if NPC.HasAbility(genericEnemyEntity, "modifier_eul_cyclone") then return end
 	
 		if NPC.IsLinkensProtected( genericEnemyEntity ) then return end
 	
