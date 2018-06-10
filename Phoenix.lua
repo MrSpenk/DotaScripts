@@ -3,7 +3,7 @@ local Phoenix = {}
 Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Auto Fire Spirit", false)
 Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Sun Ray Aim", false)
 Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix" }, "Targeting style", {" Locked target", " Free target"}, 0)
-Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 300, 150)
+Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 300, 160)
 Phoenix.posList = {}
 
 function Phoenix.OnPrepareUnitOrders(orders)
@@ -80,7 +80,7 @@ function Phoenix.SunRay(myHero)
 	end
 	
     if not Phoenix.LockedTarget or not Phoenix.CanCastSpellOn(Phoenix.LockedTarget) then return end
-    if not NPC.IsPositionInRange(Phoenix.LockedTarget, Input.GetWorldCursorPos(), 700, 0) then return end
+    if not NPC.IsPositionInRange(Phoenix.LockedTarget, Input.GetWorldCursorPos(), 1500, 0) then return end
 
     Player.PrepareUnitOrders(Players.GetLocal(), Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_TO_POSITION, Phoenix.LockedTarget, Entity.GetAbsOrigin(Phoenix.LockedTarget), nil, Enum.PlayerOrderIssuer.DOTA_ORDER_ISSUER_PASSED_UNIT_ONLY, myHero)
 end
