@@ -162,6 +162,8 @@ function Lina.targetChecker(genericEnemyEntity, throughBKB)
 		
 		if NPC.HasModifier(genericEnemyEntity, "modifier_winter_wyvern_winters_curse") then return end
 
+		if NPC.HasAbility(genericEnemyEntity, "necrolyte_reapers_scythe") then return end
+		
 		if NPC.HasState(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return end
 		
 		if Menu.IsEnabled( Lina.optionLagunaCheckAegis ) then
@@ -324,10 +326,11 @@ function Lina.heroCanCast(Hero)
 function Lina.SayThanks()
 	Lina.Thanks = true
 	for k, v in pairs(Players.GetAll()) do
-		local steamid = Player.GetPlayerData( v )["steamid"]
 		local user = Player.GetPlayerData(Players.GetLocal())["steamid"]
+		if user == 76561197968780397 then return end
 		
-		if user ~= 76561197968780397 and steamid == 76561197968780397 then
+		local steamid = Player.GetPlayerData( v )["steamid"]
+		if steamid == 76561197968780397 then
 			Engine.ExecuteCommand("say MrSpenk, привет! Спасибо за скрипт!")
 		end
 	end
