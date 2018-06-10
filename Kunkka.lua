@@ -1,16 +1,16 @@
 local Kunkka = {}
 
-Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Activation", false)
+Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Script", false)
 
-Kunkka.optionShipComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Full Combo", Enum.ButtonCode.BUTTON_CODE_NONE)
-Kunkka.optionTorrentComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka" }, "Torrent Combo", Enum.ButtonCode.BUTTON_CODE_NONE)
-
-Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka" }, "Radius around the cursor", 100, 500, 150)
+Kunkka.optionComboEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Combo" }, "Activation", false)
+Kunkka.optionFullComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Combo" }, "Full", Enum.ButtonCode.BUTTON_CODE_NONE)
+Kunkka.optionTorrentComboKey = Menu.AddKeyOption({ "Hero Specific", "Kunkka", "Combo" }, "Torrent", Enum.ButtonCode.BUTTON_CODE_NONE)
+Kunkka.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Kunkka", "Combo" }, "Radius around the cursor", 100, 500, 150)
 
 Kunkka.optionTargetCheckAM = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "AM Shield", true)
 Kunkka.optionTargetCheckLotus = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Lotus Orb", true)
 Kunkka.optionTargetCheckBlademail = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Blade Mail", true)
-Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "NyXMark Carapace", true)
+Kunkka.optionTargetCheckNyx = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Nyx Carapace", true)
 Kunkka.optionTargetCheckAbbadon = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Check the enemy" }, "Abaddon Ultimate", true)
 
 Kunkka.optionStakerEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Auto Stacker"}, "Activation", false)
@@ -47,8 +47,6 @@ function Kunkka.OnGameEnd()
 	Kunkka.init()
 end
 
-Kunkka.init()
-
 function Kunkka.OnUpdate()
 	if not Menu.IsEnabled( Kunkka.optionEnable ) then return end
 	
@@ -62,6 +60,26 @@ function Kunkka.OnUpdate()
 	
 	local myMana = NPC.GetMana(myHero)
 	
+	if Menu.IsEnabled( Kunkka.optionStakerEnable ) then
+		if not myHero or not Torrent then return end
+	
+		Kunkka.needStacker = true
+		
+		if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
+			if Ability.IsReady( Torrent ) and Ability.IsCastable( Torrent, myMana ) then
+				local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
+				if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
+					for _,camp in pairs(Kunkka.AnchentPoint) do
+						if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange( Torrent )) then
+							Ability.CastPosition( Torrent , camp[1] )
+						end
+					end
+				end
+			end
+		end
+	else Kunkka.needStacker = false end
+	
+	if not Menu.IsEnabled( Kunkka.optionComboEnable ) then return end
 	if os.clock() < Kunkka.lastTick then return end
 	
 	Kunkka.Target = Kunkka.getComboTarget(myHero)
@@ -69,7 +87,7 @@ function Kunkka.OnUpdate()
 	if Kunkka.ComboTimer < os.clock() then
 		if Kunkka.Target and Kunkka.heroCanCastSpells(myHero) then
 			if not NPC.HasModifier(Kunkka.Target, "modifier_kunkka_x_marks_the_spot") then
-				if Menu.IsKeyDownOnce(Kunkka.optionShipComboKey) then
+				if Menu.IsKeyDownOnce(Kunkka.optionFullComboKey) then
 					if X and Ability.IsCastable(X, myMana) and NPC.IsEntityInRange(myHero, Kunkka.Target, Ability.GetCastRange(X)) then
 						Kunkka.startShipCombo = true
 						Kunkka.XMarkPos = Entity.GetAbsOrigin(Kunkka.Target)
@@ -110,13 +128,6 @@ function Kunkka.OnUpdate()
 			end
 		end
 	else
-		if not Kunkka.XMarkPos then
-			Kunkka.Target = nil
-			Kunkka.XMarkPos = nil
-			startShipCombo = false
-			return
-		end
-		
 		if Kunkka.ComboTimer - os.clock() <= 2.05 then
 			if Q and Ability.IsCastable(Q, myMana) then
 				Ability.CastPosition(Q, Kunkka.XMarkPos)
@@ -135,25 +146,6 @@ function Kunkka.OnUpdate()
 			Kunkka.Target = nil
 			Kunkka.XMarkPos = nil
 			startShipCombo = false
-		end
-	end
-	
---------------------------------------------------- Auto Stacker ---------------------------------------------------
-	if not Menu.IsEnabled( Kunkka.optionStakerEnable ) then Kunkka.needStacker = false return end
-	if not myHero or not Q then return end
-	
-	Kunkka.needStacker = true
-	
-	if GameRules.GetGameState() == 5 and (GameRules.GetGameTime()- GameRules.GetGameStartTime()) > 60 then
-		if Ability.IsReady(Q) then
-			local second = (GameRules.GetGameTime()-GameRules.GetGameStartTime()) % 60
-			if second >= 60 - 2.6 - NetChannel.GetAvgLatency(Enum.Flow.MAX_FLOWS) then
-				for _,camp in pairs(Kunkka.AnchentPoint) do
-					if camp[2] and NPC.IsPositionInRange(myHero, camp[1], Ability.GetCastRange(Q)) then
-						Ability.CastPosition(Q,camp[1])
-					end
-				end
-			end
 		end
 	end
 end
@@ -294,5 +286,7 @@ function Kunkka.getComboTarget(myHero)
 	end
 	return nil
 end
+
+Kunkka.init()
 
 return Kunkka
