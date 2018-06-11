@@ -129,12 +129,12 @@ function Lina.OnUpdate()
 	if not self then return end
 	
 	local eul = NPC.GetItem(self, "item_cyclone") 
-	local slave = NPC.GetAbility(self, "lina_dragon_slave")
 	local strike = NPC.GetAbility(self, "lina_light_strike_array")
 	
 	local mana = NPC.GetMana(self)
 	
 	if GUI.IsEnabled(Lina.Identity .. "autoES") then
+		if eul then
 		local list = Entity.GetHeroesInRadius(self, Ability.GetCastRange(eul), Enum.TeamType.TEAM_ENEMY)
 		if list ~= nil then
 			for k, enemy in pairs(list) do
@@ -150,6 +150,7 @@ function Lina.OnUpdate()
 					end
 				end
 			end
+		end
 		end
 	end
 
