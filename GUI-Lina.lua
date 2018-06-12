@@ -45,6 +45,7 @@ Lina.Items  = {
 		["item_dagon"] = "resource/flash3/images/items/",
 		["item_sheepstick"] = "resource/flash3/images/items/",
 		["item_ethereal_blade"] = "resource/flash3/images/items/",
+		["item_nullifier"] = "resource/flash3/images/items/",
 }
 
 Lina.CastTypes  = {
@@ -56,6 +57,7 @@ Lina.CastTypes  = {
 		["item_dagon"] = 2,
 		["item_sheepstick"] = 2,
 		["item_ethereal_blade"] = 2,
+		["item_nullifier"] = 2,
 		["lina_dragon_slave"] = 3,
 		["lina_light_strike_array"] = 3,
 		["lina_laguna_blade"] = 2
@@ -70,7 +72,7 @@ function Lina.OnDraw()
 		GUI.Initialize(Lina.Identity, GUI.Category.Heroes, Lina.Locale["name"], Lina.Locale["desc"], "MrSpenk", "")
 
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "ordercast", Lina.Locale["order"],
-			GUI.MenuType.OrderBox, Lina.Items, "", "item_", 35, 35)
+			GUI.MenuType.OrderBox, Lina.Items, "", "item_", 40, 40)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "slider_blink", Lina.Locale["blink_range"], GUI.MenuType.Slider, 150, 1000, 300)
 
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "attack", Lina.Locale["attack"], GUI.MenuType.CheckBox, 0)
