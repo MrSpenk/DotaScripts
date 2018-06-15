@@ -1,9 +1,9 @@
 local Phoenix = {}
 
-Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Activation", false)
-Phoenix.optionCastFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Spirits before Icarus Drive", false)
+Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Activation", true)
+Phoenix.optionCastFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Spirits before Icarus Drive", true)
 
-Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Sun Ray Aim"}, "Activation", false)
+Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Sun Ray Aim"}, "Activation", true)
 Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix", "Sun Ray Aim" }, "Targeting style", {" Locked target", " Free target"}, 0)
 Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix", "Sun Ray Aim" }, "Radius around the cursor", 150, 300, 160)
 
@@ -73,6 +73,7 @@ function Phoenix.FailSwitchCast(myHero, enemyHeroes)
 		launch_spirit = true
 	end
 
+	Phoenix.Cast("item_veil_of_discord", myHero, nil, Phoenix.BestPosition(enemies, 600), mana)
 	Phoenix.Cast("item_shivas_guard", myHero, nil, nil, NPC.GetMana(myHero))
 	
 	if not launch_spirit then return end
