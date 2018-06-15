@@ -1,54 +1,91 @@
 local Phoenix = {}
 
-Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Auto Fire Spirit", false)
-Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix"}, "Sun Ray Aim", false)
-Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix" }, "Targeting style", {" Locked target", " Free target"}, 0)
-Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix" }, "Radius around the cursor", 150, 300, 160)
+Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Activation", false)
+Phoenix.optionCastFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Spirits before Icarus Drive", false)
+
+Phoenix.optionSunRay = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Sun Ray Aim"}, "Activation", false)
+Phoenix.optionTargetStyle = Menu.AddOptionCombo({ "Hero Specific", "Phoenix", "Sun Ray Aim" }, "Targeting style", {" Locked target", " Free target"}, 0)
+Phoenix.optionTargetRange = Menu.AddOptionSlider({ "Hero Specific", "Phoenix", "Sun Ray Aim" }, "Radius around the cursor", 150, 300, 160)
+
+Phoenix.optionFailSwitch = Menu.AddOptionBool({"Hero Specific", "Phoenix", "FailSwitch" }, "SuperNova", true)
+Phoenix.optionFailSwitchPerc = Menu.AddOptionSlider({"Hero Specific", "Phoenix", "FailSwitch" }, "Disable when % HP threshold", 5, 90, 30)
+
+Phoenix.Pause = {}
 Phoenix.posList = {}
+Phoenix.LockedTarget = nil
+
+Phoenix.CastTypes = { 
+	["item_shivas_guard"] = 1, 
+	["item_veil_of_discord"] = 3, 
+	["phoenix_fire_spirits"] = 1 }
 
 function Phoenix.OnPrepareUnitOrders(orders)
     if not Menu.IsEnabled(Phoenix.optionFireSpirit) then return true end
-	
+
     if not orders or not orders.ability then return true end
+
+	if orders.order == 5 then Phoenix.LockedTarget = nil end
 	
 	if orders.order == Enum.UnitOrder.DOTA_UNIT_ORDER_TRAIN_ABILITY then return true end
 	if not (orders.order == Enum.UnitOrder.DOTA_UNIT_ORDER_CAST_NO_TARGET) then return true end
-	
+
     if Ability.GetName(orders.ability) ~= "phoenix_supernova" then return true end
 
     local myHero = Heroes.GetLocal()
     if not myHero or NPC.IsStunned(myHero) or NPC.IsSilenced(myHero) then return true end
 
-    local fire_spirit = NPC.GetAbility(myHero, "phoenix_fire_spirits")
+    local enemyHeroes = Entity.GetHeroesInRadius(myHero, 1300, Enum.TeamType.TEAM_ENEMY)
+
+	if Menu.IsEnabled( Phoenix.optionFailSwitch ) then
+		local myMaxHealth = Entity.GetMaxHealth(myHero)
+		local myHealthPerc =  myMaxHealth * (Menu.GetValue(Phoenix.optionFailSwitchPerc) / 100)
+		
+		if Entity.GetHealth(myHero) > myHealthPerc then
+			if not enemyHeroes or #enemyHeroes < 1 then return false end
+			
+			Phoenix.FailSwitchCast(myHero, enemyHeroes)
+		else
+			if enemyHeroes and #enemyHeroes > 0 then
+				Phoenix.FailSwitchCast(myHero, enemyHeroes)
+			end
+		end
+	else
+		if enemyHeroes and #enemyHeroes > 0 then
+			Phoenix.FailSwitchCast(myHero, enemyHeroes)
+		end
+	end
+	
+    return true
+end
+
+function Phoenix.FailSwitchCast(myHero, enemyHeroes)
+	local fire_spirit = NPC.GetAbility(myHero, "phoenix_fire_spirits")
     local launch_fire_spirit = NPC.GetAbility(myHero, "phoenix_launch_fire_spirit")
     local supernova = NPC.GetAbility(myHero, "phoenix_supernova")
 
     local manaCost_supernova = Ability.GetManaCost(supernova)
     local myMana = NPC.GetMana(myHero)
-
-    if Ability.IsCastable(fire_spirit, myMana - manaCost_supernova) then
-        Ability.CastNoTarget(fire_spirit)
-    end
-
-    if not Ability.IsCastable(launch_fire_spirit, 0) then return true end
-	if not Ability.IsCastable(supernova, myMana) then return true end
-
-    local enemyHeroes = Entity.GetHeroesInRadius(myHero, 1300, Enum.TeamType.TEAM_ENEMY)
-	if not enemyHeroes or #enemyHeroes < 1 then return false end
 	
-    for _, enemy in ipairs(enemyHeroes) do
-          if Ability.IsCastable(launch_fire_spirit, myMana) then
-            Ability.CastPosition(launch_fire_spirit, Entity.GetAbsOrigin(enemy))
-        end
-    end
+	local launch_spirit = false
 	
-    return true
+	if Ability.IsCastable(fire_spirit, myMana - manaCost_supernova) then
+		Ability.CastNoTarget(fire_spirit)
+		launch_spirit = true
+	end
+
+	Phoenix.Cast("item_shivas_guard", myHero, nil, nil, NPC.GetMana(myHero))
+	
+	if not launch_spirit then return end
+	
+	for _, enemy in ipairs(enemyHeroes) do
+		Ability.CastPosition(launch_fire_spirit, Entity.GetAbsOrigin(enemy))
+	end
 end
 
 function Phoenix.OnUpdate()
     local myHero = Heroes.GetLocal()
     if not myHero or NPC.GetUnitName(myHero) ~= "npc_dota_hero_phoenix" then return end
-
+	
     if Menu.IsEnabled(Phoenix.optionFireSpirit) then
         Phoenix.FireSpirit(myHero)
     end
@@ -60,7 +97,7 @@ end
 
 function Phoenix.SunRay(myHero)
     if not NPC.HasModifier(myHero, "modifier_phoenix_sun_ray") then return end
-
+	
 	local npc = Phoenix.getComboTarget(myHero)
 	
 	if Menu.GetValue(Phoenix.optionTargetStyle) < 1 then
@@ -85,24 +122,26 @@ function Phoenix.SunRay(myHero)
     Player.PrepareUnitOrders(Players.GetLocal(), Enum.UnitOrder.DOTA_UNIT_ORDER_MOVE_TO_POSITION, Phoenix.LockedTarget, Entity.GetAbsOrigin(Phoenix.LockedTarget), nil, Enum.PlayerOrderIssuer.DOTA_ORDER_ISSUER_PASSED_UNIT_ONLY, myHero)
 end
 
-function Phoenix.CanCastSpellOn(npc)
-	if Entity.IsDormant(npc) or not Entity.IsAlive(npc) then return false end
-	if NPC.IsStructure(npc) or not NPC.IsKillable(npc) then return false end
-	if NPC.HasState(npc, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) then return false end
-	if NPC.HasState(npc, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end
-
-	return true
-end
-
 function Phoenix.FireSpirit(myHero)
     if not NPC.HasModifier(myHero, "modifier_phoenix_icarus_dive") then Phoenix.posList = {}; return end
 
-    local fireSpirit = NPC.GetAbility(myHero, "phoenix_launch_fire_spirit")
-    if not fireSpirit or not Ability.IsCastable(fireSpirit, NPC.GetMana(myHero)) then return end
+    local launch_fireSpirit = NPC.GetAbility(myHero, "phoenix_launch_fire_spirit")
+	local fireSpirit = NPC.GetAbility(myHero, "phoenix_fire_spirits")
+	local mana = NPC.GetMana(myHero)
+	
+	if Menu.IsEnabled( Phoenix.optionCastFireSpirit ) then
+		if fireSpirit and Ability.IsCastable(fireSpirit, mana) then
+			Phoenix.Cast("phoenix_fire_spirits", myHero, nil, nil, mana)
+		end
+	end
+	
+    if not launch_fireSpirit then return end
 
-    local enemies = Entity.GetHeroesInRadius(myHero, Ability.GetCastRange(fireSpirit), Enum.TeamType.TEAM_ENEMY)
+    local enemies = Entity.GetHeroesInRadius(myHero, Ability.GetCastRange(launch_fireSpirit), Enum.TeamType.TEAM_ENEMY)
     if not enemies or #enemies < 1 then return end
 
+	Phoenix.Cast("item_veil_of_discord", myHero, nil, Phoenix.BestPosition(enemies, 600), mana)
+	
     for i, npc in ipairs(enemies) do
         if npc and not NPC.IsIllusion(npc) and Phoenix.CanCastSpellOn(npc) then
             local speed = 900
@@ -111,12 +150,109 @@ function Phoenix.FireSpirit(myHero)
             local pos = Phoenix.GetPredictedPosition(npc, delay)
 
             if not Phoenix.PositionIsCovered(pos) then
-                Ability.CastPosition(fireSpirit, pos)
+                Ability.CastPosition(launch_fireSpirit, pos)
                 table.insert(Phoenix.posList, pos)
                 return
             end
         end
     end
+end
+
+function Phoenix.getComboTarget(myHero)
+	if not myHero then return end
+
+	local targetingRange = Menu.GetValue(Phoenix.optionTargetRange)
+	local mousePos = Input.GetWorldCursorPos()
+	
+	local heroes = Input.GetNearestHeroToCursor(Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_BOTH)
+	if not heroes then return end 
+
+	local enemyDist = (Entity.GetAbsOrigin(heroes) - mousePos):Length2D()
+	if enemyDist <= targetingRange then
+		return heroes
+	end
+	
+	return nil
+end
+
+function Phoenix.BestPosition(unitsAround, radius)
+    if not unitsAround or #unitsAround <= 0 then return nil end
+    local enemyNum = #unitsAround
+
+	if enemyNum == 1 then return Entity.GetAbsOrigin(unitsAround[1]) end
+
+	-- find all mid points of every two enemy heroes,
+	-- then find out the best position among these.
+	-- O(n^3) complexity
+	local maxNum = 1
+	local bestPos = Entity.GetAbsOrigin(unitsAround[1])
+	for i = 1, enemyNum-1 do
+		for j = i+1, enemyNum do
+			if unitsAround[i] and unitsAround[j] then
+				local pos1 = Entity.GetAbsOrigin(unitsAround[i])
+				local pos2 = Entity.GetAbsOrigin(unitsAround[j])
+				local mid = pos1:__add(pos2):Scaled(0.5)
+
+				local heroesNum = 0
+				for k = 1, enemyNum do
+					if NPC.IsPositionInRange(unitsAround[k], mid, radius, 0) then
+						heroesNum = heroesNum + 1
+					end
+				end
+
+				if heroesNum > maxNum then
+					maxNum = heroesNum
+					bestPos = mid
+				end
+
+			end
+		end
+	end
+
+	return bestPos
+end
+
+function Phoenix.Cast(name, self, hero, position, manapoint)
+	if not Phoenix.SleepReady("cast_" .. name) then return end
+	
+	local ability = NPC.GetItem(self, name, true) or NPC.GetAbility(self, name)
+	
+	local casttype = Phoenix.CastTypes[name]
+	if ability == nil then return end
+
+	if casttype == 1 then
+		if Ability.IsReady(ability) then
+			Ability.CastNoTarget(ability)
+		end
+	elseif casttype == 2 then
+		if Ability.IsCastable(ability, manapoint) and Ability.IsReady(ability) then
+			Ability.CastTarget(ability, hero)
+		end
+	else
+		if Ability.IsCastable(ability, manapoint) and Ability.IsReady(ability) then
+			Ability.CastPosition(ability, position)
+		end
+	end
+	
+	Phoenix.Sleep("cast_" .. name, 0.1)
+end
+
+function Phoenix.Sleep(where, time)
+	Phoenix.Pause[where] = os.clock() + time
+end
+
+function Phoenix.SleepReady(where)
+	if Phoenix.Pause[where] == nil then Phoenix.Pause[where] = 0 end
+	if os.clock() > Phoenix.Pause[where] then return true else return false end
+end
+
+function Phoenix.CanCastSpellOn(npc)
+	if Entity.IsDormant(npc) or not Entity.IsAlive(npc) then return false end
+	if NPC.IsStructure(npc) or not NPC.IsKillable(npc) then return false end
+	if NPC.HasState(npc, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) then return false end
+	if NPC.HasState(npc, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return false end
+
+	return true
 end
 
 function Phoenix.CantMove(npc)
@@ -180,23 +316,6 @@ function Phoenix.PositionIsCovered(pos)
     end
 
     return false
-end
-
-function Phoenix.getComboTarget(myHero)
-	if not myHero then return end
-
-	local targetingRange = Menu.GetValue(Phoenix.optionTargetRange)
-	local mousePos = Input.GetWorldCursorPos()
-	
-	local heroes = Input.GetNearestHeroToCursor(Entity.GetTeamNum(myHero), Enum.TeamType.TEAM_BOTH)
-	if not heroes then return end 
-
-	local enemyDist = (Entity.GetAbsOrigin(heroes) - mousePos):Length2D()
-	if enemyDist <= targetingRange then
-		return heroes
-	end
-	
-	return nil
 end
 
 return Phoenix
