@@ -73,7 +73,6 @@ function Phoenix.FailSwitchCast(myHero, enemyHeroes)
 		launch_spirit = true
 	end
 
-	Phoenix.Cast("item_veil_of_discord", myHero, nil, Phoenix.BestPosition(enemies, 600), mana)
 	Phoenix.Cast("item_shivas_guard", myHero, nil, nil, NPC.GetMana(myHero))
 	
 	if not launch_spirit then return end
