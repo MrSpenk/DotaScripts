@@ -143,7 +143,7 @@ function Phoenix.FireSpirit(myHero)
 	Phoenix.Cast("item_veil_of_discord", myHero, nil, Phoenix.BestPosition(enemies, 600), mana)
 	
     for i, npc in ipairs(enemies) do
-        if npc and not NPC.IsIllusion(npc) and Phoenix.CanCastSpellOn(npc) then
+		if npc and not NPC.IsIllusion(npc) and Phoenix.CanCastSpellOn(npc) and not NPC.HasModifier(npc, "modifier_phoenix_fire_spirit_burn") then
             local speed = 900
             local dis = (Entity.GetAbsOrigin(myHero) - Entity.GetAbsOrigin(npc)):Length()
             local delay = dis / speed
