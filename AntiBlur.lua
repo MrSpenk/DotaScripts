@@ -1,7 +1,6 @@
 local AntiBlur = {}
 
 AntiBlur.optionEnable = Menu.AddOptionBool({ "Awareness", "Anti-Blur PA" }, "Activation", false)
-AntiBlur.optionSize = Menu.AddOptionSlider({ "Awareness", "Anti-Blur PA" }, "Size", 800, 2000, 1000)
 
 local timer = 0
 local Phantom = {false, false, false}
@@ -45,18 +44,14 @@ function AntiBlur.OnUpdate()
 		AntiBlur.GetPA(Phantom)
 	end
 	
-	AntiBlur.Size = Menu.GetValue( AntiBlur.optionSize )
-	
 	if timer - os.clock() <= 0 then
 		AntiBlur.FindPA(Phantom)
 	end
 end
 
 function AntiBlur.OnDraw()
-	if not AntiBlur.enabled then return end
-
 	if Phantom[3] and Phantom[2] then
-		MiniMap.DrawHeroIcon("npc_dota_hero_phantom_assassin", Phantom[2], 255, 255, 255, 255, AntiBlur.Size )
+		MiniMap.DrawHeroIcon( "npc_dota_hero_phantom_assassin", Phantom[2], 255, 255, 255 )
 	end
 end
 
