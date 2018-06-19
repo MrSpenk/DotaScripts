@@ -22,6 +22,8 @@ function AntiBlur.GetPA(object)
 end
 
 function AntiBlur.FindPA(object)
+	if not object[1] then return end
+	
 	local visible = not Entity.IsDormant( object[1] )
 	local hasBlur = NPC.HasModifier(object[1], "modifier_phantom_assassin_blur_active") or false
 	
