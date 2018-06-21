@@ -6,11 +6,13 @@ AntiBlur.optionSize = Menu.AddOptionSlider({ "Awareness", "Anti-Blur PA" }, "Siz
 local timer = 0
 local Phantom = {false, false, false}
 
-function AntiBlur.GetPA(object)
+function AntiBlur.GetPA(object, myHero)
+	if not myHero then return end
+	
 	if not object[1] then
 		for i = 1, 10 do
 			local hero = Heroes.Get(i)
-			if hero and Entity.IsEntity( hero ) then
+			if hero and not Entity.IsSameTeam( myHero, hero ) then
 				local name = NPC.GetUnitName( hero )
 				if (name == "npc_dota_hero_phantom_assassin") then
 					object[1] = hero
@@ -44,7 +46,7 @@ function AntiBlur.OnUpdate()
 	if not AntiBlur.enabled then return end
 	
 	if not Phantom[1] then
-		AntiBlur.GetPA(Phantom)
+		AntiBlur.GetPA(Phantom, Heroes.GetLocal())
 	end
 	
 	AntiBlur.Size = Menu.GetValue( AntiBlur.optionSize )
@@ -56,6 +58,7 @@ end
 
 function AntiBlur.OnDraw()
 	if not AntiBlur.enabled then return end
+	
 	if Phantom[3] and Phantom[2] then
 		MiniMap.DrawHeroIcon( "npc_dota_hero_phantom_assassin", Phantom[2], 255, 255, 255, 255, AntiBlur.Size )
 	end
