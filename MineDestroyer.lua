@@ -1,6 +1,7 @@
 local MineDestroyer = {}
 
 MineDestroyer.optionEnable = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Activation", false)
+MineDestroyer.optionOnlyRed = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Destroy only red mines", true)
 MineDestroyer.optionInvAttack = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Attack during invisibility", false)
 MineDestroyer.optionPanicKey = Menu.AddKeyOption({"Utility", "Mine Destroyer"}, "Panic Key ", Enum.ButtonCode.BUTTON_CODE_NONE)
 
@@ -16,16 +17,25 @@ function MineDestroyer.OnUpdate()
 		
 	local radius = NPC.GetAttackRange( myHero )
 		
-	if radius < 430 then radius = 430 end
+	if radius < 430 then 
+		radius = 430
+	end
 		
 	local npcs = Entity.GetUnitsInRadius(myHero, radius, Enum.TeamType.TEAM_ENEMY)
 	if not npcs or #npcs < 1 then return end
 	
-	for _,npc in pairs(npcs) do
+	local onlyRed = Menu.GetValue( MineDestroyer.optionOnlyRed )
+	
+	for i = 0, #npcs do
+		local npc = npcs[i]
 		if npc and not Entity.IsSameTeam(myHero, npc) then
 			local name = NPC.GetUnitName( npc )
 			
-			if name and name == "npc_dota_techies_land_mine" or name == "npc_dota_techies_remote_mine" or name == "npc_dota_techies_stasis_trap" then
+			if name and name == "npc_dota_techies_land_mine" then
+				MineDestroyer.Attack(myHero, npc)
+			end
+
+			if not onlyRed and name == "npc_dota_techies_remote_mine" or name == "npc_dota_techies_stasis_trap" then
 				MineDestroyer.Attack(myHero, npc)
 			end
 		end
