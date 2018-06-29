@@ -1,38 +1,50 @@
 local Lina = {}
 Lina.Identity = "lina_gui_combos"
+
 Lina.Locale = {
 	["name"] = {
 		["english"] = "Lina"
 	},
 	["desc"] = {
-		["english"] = "Perfect stun under Eul's + Items support"
+		["english"] = "Perfect stun under Eul's + Items support",
+		["russian"] = "Тайминговый стан + Поддержка предметов"
 	},
 	["combo"] = {
-		["english"] = "Combo Key"
+		["english"] = "Combo Key",
+		["russian"] = "Кнопка активации комбо"
+		
 	},
 	["autoES"] = {
-		["english"] = "Auto stun under Eul's"
+		["english"] = "Auto stun under Eul's Scepter",
+		["russian"] = "Автоматический стан под Eul's Scepter"
 	},
 	["attack"] = {
-		["english"] = "Attack after combo"
+		["english"] = "Attack after combo",
+		["russian"] = "Атаковать после комбо"
 	},
 	["DoNotUseLaguna"] = {
-		["english"] = "Laguna will not be used if:"
+		["english"] = "Laguna will not be used if:",
+		["russian"] = "Не использовать Laguna если:"
 	},
 	["autoLaguna"] = {
-		["english"] = "Auto Laguna Blade"
+		["english"] = "Auto Laguna Blade",
+		["russian"] = "Автоматически использовать Laguna, чтобы убить врага"
 	},
 	["Aegis"] = {
-		["english"] = "Enemy has Aegis"
+		["english"] = "Enemy has Aegis",
+		["russian"] = "Враг имеет Aegis"
 	},
 	["Invisible"] = {
-		["english"] = "You're invisible"
+		["english"] = "You're invisible",
+		["russian"] = "Вы в невидимости"
 	},
 	["order"] = {
-		["english"] = "Select item order"
+		["english"] = "Select item order",
+		["russian"] = "Порядок использования предметов"
 	},
 	["blink_range"] = {
-		["english"] = "Blink range to enemy"
+		["english"] = "Blink range to enemy",
+		["russian"] = "Дистанция до врага после блинка"
 	}
 }
 
@@ -426,13 +438,13 @@ function Lina.Cast(name, self, hero, position, manapoint)
 		else
 			local range = GUI.Get(Lina.Identity .. "slider_blink")
 			local pos = (Entity.GetAbsOrigin(hero) + (Entity.GetAbsOrigin(self) - Entity.GetAbsOrigin(hero)):Normalized():Scaled(range))
-			if not NPC.IsEntityInRange(hero, self, range ) and NPC.IsEntityInRange(hero, self, 1150) then
+			if not NPC.IsEntityInRange(hero, self, range + 1 ) and NPC.IsEntityInRange(hero, self, 1150) then
 				Ability.CastPosition(ability, pos)
 			end
 		end
 	end
 	
-	GUI.Sleep(Lina.Identity .. "cast_" .. name, 0.1)
+	GUI.Sleep(Lina.Identity .. "cast_" .. name, 0.2)
 end
 
 return Lina
