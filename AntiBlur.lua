@@ -3,7 +3,6 @@ local AntiBlur = {}
 AntiBlur.optionEnable = Menu.AddOptionBool({ "Awareness", "Anti-Blur PA" }, "Activation", false)
 AntiBlur.optionSize = Menu.AddOptionSlider({ "Awareness", "Anti-Blur PA" }, "Size", 800, 3000, 800)
 
-local timer = 0
 local Phantom = {false, false, false}
 
 function AntiBlur.GetPA(object, myHero)
@@ -37,8 +36,6 @@ function AntiBlur.FindPA(object)
 		object[2] = false
 		object[3] = false
 	end
-
-	timer = os.clock() + 1
 end
 
 function AntiBlur.OnUpdate()
@@ -48,12 +45,10 @@ function AntiBlur.OnUpdate()
 	if not Phantom[1] then
 		AntiBlur.GetPA(Phantom, Heroes.GetLocal())
 	end
-	
+
 	AntiBlur.Size = Menu.GetValue( AntiBlur.optionSize )
 	
-	if timer - os.clock() <= 0 then
-		AntiBlur.FindPA(Phantom)
-	end
+	AntiBlur.FindPA(Phantom)
 end
 
 function AntiBlur.OnDraw()
