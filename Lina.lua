@@ -74,8 +74,6 @@ function Lina.OnUpdate()
 	if Menu.IsEnabled( Lina.optionAutoLaguna ) then
 		Lina.AutoLaguna()
 	end
-	
-	if Lina.Thanks == false then Lina.SayThanks() end
 end
  
 function Lina.AutoLaguna()
@@ -321,19 +319,6 @@ function Lina.heroCanCast(Hero)
 	if NPC.HasModifier(Lina.Hero, "modifier_teleporting") then return false end
 	
 	return true
- end
- 
-function Lina.SayThanks()
-	Lina.Thanks = true
-	for k, v in pairs(Players.GetAll()) do
-		local user = Player.GetPlayerData(Players.GetLocal())["steamid"]
-		if user == 76561197968780397 then return end
-		
-		local steamid = Player.GetPlayerData( v )["steamid"]
-		if steamid == 76561197968780397 then
-			Engine.ExecuteCommand("say MrSpenk, привет! Спасибо за скрипт!")
-		end
-	end
  end
  
 function Lina.init()
