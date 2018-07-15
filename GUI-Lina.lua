@@ -6,38 +6,10 @@ Lina.Locale = {
 		["english"] = "Lina"
 	},
 	["desc"] = {
-		["english"] = "Perfect stun under Eul's + Items support",
-		["russian"] = "Тайминговый стан + Поддержка предметов"
+		["english"] = "Full combo",
+		["russian"] = "Полное комбо"
 	},
-	["combo"] = {
-		["english"] = "Combo Key",
-		["russian"] = "Кнопка активации комбо"
-		
-	},
-	["autoES"] = {
-		["english"] = "Auto stun under Eul's Scepter",
-		["russian"] = "Автоматический стан под Eul's Scepter"
-	},
-	["attack"] = {
-		["english"] = "Attack after combo",
-		["russian"] = "Атаковать после комбо"
-	},
-	["DoNotUseLaguna"] = {
-		["english"] = "Laguna will not be used if:",
-		["russian"] = "Не использовать Laguna если:"
-	},
-	["autoLaguna"] = {
-		["english"] = "Auto Laguna Blade",
-		["russian"] = "Автоматически использовать Laguna, чтобы убить врага"
-	},
-	["Aegis"] = {
-		["english"] = "Enemy has Aegis",
-		["russian"] = "Враг имеет Aegis"
-	},
-	["Invisible"] = {
-		["english"] = "You're invisible",
-		["russian"] = "Вы в невидимости"
-	},
+	
 	["order"] = {
 		["english"] = "Select item order",
 		["russian"] = "Порядок использования предметов"
@@ -45,6 +17,50 @@ Lina.Locale = {
 	["blink_range"] = {
 		["english"] = "Blink range to enemy",
 		["russian"] = "Дистанция до врага после блинка"
+	},
+	
+	["SlaveIC"] = {
+		["english"] = "Use slave in combos",
+		["russian"] = "Использовать задув в комбо"
+	},
+	["StunIC"] = {
+		["english"] = "Use stun in combos",
+		["russian"] = "Использовать стан в комбо"
+	},
+	["LagunaIC"] = {
+		["english"] = "Use laguna in combos",
+		["russian"] = "Использовать ульту в комбо"
+	},
+	["attack"] = {
+		["english"] = "Attack during combos",
+		["russian"] = "Атаковать во время комбо"
+	},
+	
+	["combo"] = {
+		["english"] = "Combo Key",
+		["russian"] = "Кнопка активации комбо"
+	},
+	["autoES"] = {
+		["english"] = "Auto stun under Eul's Scepter",
+		["russian"] = "Автоматический стан под Eul's Scepter"
+	},
+
+	["autoLaguna"] = {
+		["english"] = "Auto Laguna Blade",
+		["russian"] = "Автоматически использовать Laguna, чтобы убить врага"
+	},
+	["DoNotUseLaguna"] = {
+		["english"] = "Laguna will not be used if:",
+		["russian"] = "Не использовать Laguna если:"
+	},
+
+	["Aegis"] = {
+		["english"] = "Enemy has Aegis",
+		["russian"] = "Враг имеет Aegis"
+	},
+	["Invisible"] = {
+		["english"] = "You're invisible",
+		["russian"] = "Вы в невидимости"
 	}
 }
 
@@ -87,13 +103,19 @@ function Lina.OnDraw()
 			GUI.MenuType.OrderBox, Lina.Items, "", "item_", 40, 40)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "slider_blink", Lina.Locale["blink_range"], GUI.MenuType.Slider, 150, 1000, 300)
 
+		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "SlaveIC", Lina.Locale["SlaveIC"], GUI.MenuType.CheckBox, 0)
+		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "StunIC", Lina.Locale["StunIC"], GUI.MenuType.CheckBox, 0)
+		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "LagunaIC", Lina.Locale["LagunaIC"], GUI.MenuType.CheckBox, 0)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "attack", Lina.Locale["attack"], GUI.MenuType.CheckBox, 0)
-		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "autoES", Lina.Locale["autoES"], GUI.MenuType.CheckBox, 0)
+		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "combokey", Lina.Locale["combo"], GUI.MenuType.Key, "A", Lina.Combo)
 		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
-	
+		
+		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "autoES", Lina.Locale["autoES"], GUI.MenuType.CheckBox, 0)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "autoLaguna", Lina.Locale["autoLaguna"], GUI.MenuType.CheckBox, 0)
+		
+		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
 		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "DoNotUseLaguna", Lina.Locale["DoNotUseLaguna"], GUI.MenuType.Label)
@@ -111,14 +133,15 @@ function Lina.Combo()
     if not enemy or Entity.IsDormant(enemy) or NPC.IsIllusion(enemy) or not (Entity.GetHealth(enemy) > 0) then return end
 
     local mana = NPC.GetMana(self)
-	
 	local slave = NPC.GetAbility(self, "lina_dragon_slave")
+	local stun = NPC.GetAbility(self, "lina_light_strike_array")
+	local laguna = NPC.GetAbility(self, "lina_laguna_blade")
 	
 	local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(self), Enum.TeamType.TEAM_ENEMY)
     if not enemy or Entity.IsDormant(enemy) or NPC.IsIllusion(enemy) or not (Entity.GetHealth(enemy) > 0) then return end
 	
 	Lina.LockTarget(enemy)
-	if Lina.Target == nil then return end
+	if not Lina.Target then return end
 	
 	local pos = Entity.GetAbsOrigin( Lina.Target )
 	
@@ -130,15 +153,28 @@ function Lina.Combo()
 			end
 		end
 		
-		local slavePred = Ability.GetCastPoint(slave) + (pos:__sub(Entity.GetAbsOrigin(self)):Length2D() / 1200) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
-		Lina.Cast("lina_dragon_slave", self, Lina.Target, Lina.castPred(Lina.Target, slavePred, "line"), mana)
+		if GUI.IsEnabled(Lina.Identity .."SlaveIC") then
+			local slavePred = Ability.GetCastPoint(slave) + (pos:__sub(Entity.GetAbsOrigin(self)):Length2D() / 1200) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
+			Lina.Cast("lina_dragon_slave", self, Lina.Target, Lina.castPred(self, Lina.Target, slavePred, "line"), mana)
+		end
 		
-		if NPC.HasState(Lina.Target, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) or not GUI.IsEnabled(Lina.Identity .. "attack") then return end
+		if GUI.IsEnabled(Lina.Identity .."StunIC") then
+			local dist = Ability.GetCastRange( stun )
+			local stunPred = Ability.GetCastPoint(stun) + (pos:__sub(Entity.GetAbsOrigin(self)):Length2D() / dist) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
+
+			Lina.Cast("lina_light_strike_array", self, Lina.Target, Lina.castPred(self, Lina.Target, stunPred, "line"), mana)
+		end
+		
+		if GUI.IsEnabled(Lina.Identity .."LagunaIC") then
+			Lina.Cast("lina_laguna_blade", self, Lina.Target, nil, mana)
+		end
+		
+		if NPC.HasState(Lina.Target, Enum.ModifierState.MODIFIER_STATE_INVULNERABLE) then return end
 			Player.AttackTarget(Players.GetLocal(), self, Lina.Target)
 	end
 end
 
-function Lina.OnUpdate()	
+function Lina.OnUpdate()
 	local self = Heroes.GetLocal()
 	if not self then return end
 	
@@ -149,22 +185,22 @@ function Lina.OnUpdate()
 	
 	if GUI.IsEnabled(Lina.Identity .. "autoES") then
 		if eul then
-		local list = Entity.GetHeroesInRadius(self, Ability.GetCastRange(eul), Enum.TeamType.TEAM_ENEMY)
-		if list ~= nil then
-			for k, enemy in pairs(list) do
-				if enemy and not NPC.IsIllusion( enemy ) and NPC.IsEntityInRange(self, enemy, Ability.GetCastRange(strike) ) then
-					local pos = Entity.GetAbsOrigin( enemy )
-					if NPC.HasModifier(enemy, "modifier_eul_cyclone") then
-						local castStrike = NPC.GetTimeToFacePosition(self, pos) + (Ability.GetCastPoint(strike) + 0.49) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
-						local cycloneDieTime = Modifier.GetDieTime(NPC.GetModifier(enemy, "modifier_eul_cyclone"))
+			local list = Entity.GetHeroesInRadius(self, Ability.GetCastRange(eul), Enum.TeamType.TEAM_ENEMY)
+			if list ~= nil then
+				for k, enemy in pairs(list) do
+					if enemy and not NPC.IsIllusion( enemy ) and NPC.IsEntityInRange(self, enemy, Ability.GetCastRange(strike) ) then
+						local pos = Entity.GetAbsOrigin( enemy )
+						if NPC.HasModifier(enemy, "modifier_eul_cyclone") then
+							local castStrike = NPC.GetTimeToFacePosition(self, pos) + (Ability.GetCastPoint(strike) + 0.5) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
+							local cycloneDieTime = Modifier.GetDieTime(NPC.GetModifier(enemy, "modifier_eul_cyclone"))
 
-						if cycloneDieTime - GameRules.GetGameTime() <= castStrike then
-							Lina.Cast("lina_light_strike_array", self, enemy, pos, mana)
+							if cycloneDieTime - GameRules.GetGameTime() <= castStrike then
+								Lina.Cast("lina_light_strike_array", self, enemy, pos, mana)
+							end
 						end
 					end
 				end
 			end
-		end
 		end
 	end
 
@@ -300,7 +336,7 @@ function Lina.IsHeroInvisible(Hero)
 	return false
  end
 
-function Lina.castPred(enemy, adjustmentVariable, castType)
+function Lina.castPred(self, enemy, adjustmentVariable, castType)
 	if not enemy or not adjustmentVariable then return end
 
 	local enemyRotation = Entity.GetRotation(enemy):GetVectors()
