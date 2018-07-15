@@ -120,7 +120,7 @@ function Lina.Combo()
 	Lina.LockTarget(enemy)
 	if Lina.Target == nil then return end
 	
-	local pos = NPC.GetAbsOrigin( Lina.Target )
+	local pos = Entity.GetAbsOrigin( Lina.Target )
 	
 	if Lina.CastTime <= os.clock() then
 		local ordercast = GUI.Get(Lina.Identity .. "ordercast", 1)
@@ -153,7 +153,7 @@ function Lina.OnUpdate()
 		if list ~= nil then
 			for k, enemy in pairs(list) do
 				if enemy and not NPC.IsIllusion( enemy ) and NPC.IsEntityInRange(self, enemy, Ability.GetCastRange(strike) ) then
-					local pos = NPC.GetAbsOrigin( enemy )
+					local pos = Entity.GetAbsOrigin( enemy )
 					if NPC.HasModifier(enemy, "modifier_eul_cyclone") then
 						local castStrike = NPC.GetTimeToFacePosition(self, pos) + (Ability.GetCastPoint(strike) + 0.49) + NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING)
 						local cycloneDieTime = Modifier.GetDieTime(NPC.GetModifier(enemy, "modifier_eul_cyclone"))
