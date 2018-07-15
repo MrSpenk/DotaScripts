@@ -31,11 +31,6 @@ Lina.Locale = {
 		["english"] = "Use laguna in combos",
 		["russian"] = "Использовать ульту в комбо"
 	},
-	["attack"] = {
-		["english"] = "Attack during combos",
-		["russian"] = "Атаковать во время комбо"
-	},
-	
 	["combo"] = {
 		["english"] = "Combo Key",
 		["russian"] = "Кнопка активации комбо"
@@ -106,17 +101,11 @@ function Lina.OnDraw()
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "SlaveIC", Lina.Locale["SlaveIC"], GUI.MenuType.CheckBox, 0)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "StunIC", Lina.Locale["StunIC"], GUI.MenuType.CheckBox, 0)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "LagunaIC", Lina.Locale["LagunaIC"], GUI.MenuType.CheckBox, 0)
-		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "attack", Lina.Locale["attack"], GUI.MenuType.CheckBox, 0)
 		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "combokey", Lina.Locale["combo"], GUI.MenuType.Key, "A", Lina.Combo)
 		
-		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
-		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "autoES", Lina.Locale["autoES"], GUI.MenuType.CheckBox, 0)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "autoLaguna", Lina.Locale["autoLaguna"], GUI.MenuType.CheckBox, 0)
-		
-		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
-		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "space", "", GUI.MenuType.Label)
 		
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "DoNotUseLaguna", Lina.Locale["DoNotUseLaguna"], GUI.MenuType.Label)
 		GUI.AddMenuItem(Lina.Identity, Lina.Identity .. "Aegis", Lina.Locale["Aegis"], GUI.MenuType.CheckBox, 1)
