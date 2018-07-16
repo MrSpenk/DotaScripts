@@ -1,5 +1,6 @@
 local Phoenix = {}
 
+Menu.AddOptionIcon({"Hero Specific", "Phoenix"}, "panorama/images/heroes/icons/npc_dota_hero_phoenix_png.vtex_c")
 Phoenix.optionFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Activation", true)
 Phoenix.optionCastFireSpirit = Menu.AddOptionBool({"Hero Specific", "Phoenix", "Auto Fire Spirit"}, "Spirits before Icarus Drive", true)
 
@@ -143,13 +144,13 @@ function Phoenix.FireSpirit(myHero)
 	Phoenix.Cast("item_veil_of_discord", myHero, nil, Phoenix.BestPosition(enemies, 600), mana)
 	
     for i, npc in ipairs(enemies) do
-		if npc and not NPC.IsIllusion(npc) and Phoenix.CanCastSpellOn(npc) and not NPC.HasModifier(npc, "modifier_phoenix_fire_spirit_burn") then
+		if npc and not NPC.IsIllusion(npc) and Phoenix.CanCastSpellOn(npc) then
             local speed = 900
             local dis = (Entity.GetAbsOrigin(myHero) - Entity.GetAbsOrigin(npc)):Length()
             local delay = dis / speed
             local pos = Phoenix.GetPredictedPosition(npc, delay)
 
-            if not Phoenix.PositionIsCovered(pos) then
+            if not Phoenix.PositionIsCovered(pos) and not NPC.HasModifier(npc, "modifier_phoenix_fire_spirit_burn") then
                 Ability.CastPosition(launch_fireSpirit, pos)
                 table.insert(Phoenix.posList, pos)
                 return
@@ -181,9 +182,9 @@ function Phoenix.BestPosition(unitsAround, radius)
 
 	if enemyNum == 1 then return Entity.GetAbsOrigin(unitsAround[1]) end
 
-	-- find all mid points of every two enemy heroes,
-	-- then find out the best position among these.
-	-- O(n^3) complexity
+	
+	
+	
 	local maxNum = 1
 	local bestPos = Entity.GetAbsOrigin(unitsAround[1])
 	for i = 1, enemyNum-1 do
