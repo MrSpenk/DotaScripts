@@ -1,6 +1,6 @@
 local Lina = {}
 
-Menu.AddOptionIcon({"Hero Specific", "Phoenix"}, "panorama/images/heroes/icons/npc_dota_hero_lina_png.vtex_c")
+Menu.AddOptionIcon({"Hero Specific", "Lina"}, "panorama/images/heroes/icons/npc_dota_hero_lina_png.vtex_c")
 Lina.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Eul's Combo", false)
 Lina.optionComboKey = Menu.AddKeyOption({ "Hero Specific", "Lina" }, "Combo Key", Enum.ButtonCode.BUTTON_CODE_NONE)
 Lina.optionAttack = Menu.AddOptionBool({ "Hero Specific", "Lina" }, "Attack after combo", true)
