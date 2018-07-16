@@ -1,5 +1,6 @@
 local AntiBlur = {}
 
+Menu.AddOptionIcon({"Awareness", "Anti-Blur PA"}, "panorama/images/heroes/icons/npc_dota_hero_phantom_assassin_png.vtex_c")
 AntiBlur.optionEnable = Menu.AddOptionBool({ "Awareness", "Anti-Blur PA" }, "Activation", false)
 AntiBlur.optionSize = Menu.AddOptionSlider({ "Awareness", "Anti-Blur PA" }, "Size", 800, 3000, 800)
 
