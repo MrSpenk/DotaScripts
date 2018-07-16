@@ -1,5 +1,6 @@
 local Kunkka = {}
 
+Menu.AddOptionIcon({"Hero Specific", "Kunkka"}, "panorama/images/heroes/icons/npc_dota_hero_kunkka_png.vtex_c")
 Kunkka.optionEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka" }, "Script", false)
 
 Kunkka.optionComboEnable = Menu.AddOptionBool({ "Hero Specific", "Kunkka", "Combo" }, "Activation", false)
