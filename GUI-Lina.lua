@@ -60,30 +60,30 @@ Lina.Locale = {
 }
 
 Lina.Items  = {
-		["item_blink"] = "resource/flash3/images/items/",
-		["item_veil_of_discord"] = "resource/flash3/images/items/",
-		["item_soul_ring"] = "resource/flash3/images/items/",
-		["item_orchid"] = "resource/flash3/images/items/",
-		["item_bloodthorn"] = "resource/flash3/images/items/",
-		["item_dagon"] = "resource/flash3/images/items/",
-		["item_sheepstick"] = "resource/flash3/images/items/",
-		["item_ethereal_blade"] = "resource/flash3/images/items/",
-		["item_nullifier"] = "resource/flash3/images/items/",
+	["item_blink"] = "resource/flash3/images/items/",
+	["item_veil_of_discord"] = "resource/flash3/images/items/",
+	["item_soul_ring"] = "resource/flash3/images/items/",
+	["item_orchid"] = "resource/flash3/images/items/",
+	["item_bloodthorn"] = "resource/flash3/images/items/",
+	["item_dagon"] = "resource/flash3/images/items/",
+	["item_sheepstick"] = "resource/flash3/images/items/",
+	["item_ethereal_blade"] = "resource/flash3/images/items/",
+	["item_nullifier"] = "resource/flash3/images/items/",
 }
 
 Lina.CastTypes  = {
-		["item_blink"] = 3,
-		["item_veil_of_discord"] = 3,
-		["item_soul_ring"] = 1,
-		["item_orchid"] = 2,
-		["item_bloodthorn"] = 2,
-		["item_dagon"] = 2,
-		["item_sheepstick"] = 2,
-		["item_ethereal_blade"] = 2,
-		["item_nullifier"] = 2,
-		["lina_dragon_slave"] = 3,
-		["lina_light_strike_array"] = 3,
-		["lina_laguna_blade"] = 2
+	["item_blink"] = 3,
+	["item_veil_of_discord"] = 3,
+	["item_soul_ring"] = 1,
+	["item_orchid"] = 2,
+	["item_bloodthorn"] = 2,
+	["item_dagon"] = 2,
+	["item_sheepstick"] = 2,
+	["item_ethereal_blade"] = 2,
+	["item_nullifier"] = 2,
+	["lina_dragon_slave"] = 3,
+	["lina_light_strike_array"] = 3,
+	["lina_laguna_blade"] = 2
 }
 
 Lina.Target = nil
@@ -127,34 +127,43 @@ function Lina.Combo()
 	local laguna = NPC.GetAbility(self, "lina_laguna_blade")
 	
 	local enemy = Input.GetNearestHeroToCursor(Entity.GetTeamNum(self), Enum.TeamType.TEAM_ENEMY)
-    if not enemy or Entity.IsDormant(enemy) or NPC.IsIllusion(enemy) or not (Entity.GetHealth(enemy) > 0) then return end
-	
+    if not enemy or Entity.IsDormant(enemy) or NPC.IsIllusion(enemy) or not Lina.targetChecker(self, enemy, false) or not (Entity.GetHealth(enemy) > 0) then return end
+
 	Lina.LockTarget(enemy)
 	if not Lina.Target then return end
 	
-	local pos = Entity.GetAbsOrigin( Lina.Target )
-	
 	if Lina.CastTime <= os.clock() then
+		local pos = Entity.GetAbsOrigin( Lina.Target )
 		local ordercast = GUI.Get(Lina.Identity .. "ordercast", 1)
 		if ordercast ~= nil then
 			for i = 1, Length(ordercast) do
+				Log.Write(tostring(ordercast[i]))
 				Lina.Cast(ordercast[i], self, Lina.Target, pos, mana)
 			end
 		end
 		
+		local casted_slave, casted_stun = false
+		
 		if GUI.IsEnabled(Lina.Identity .."SlaveIC") then
-			local slavePred = Ability.GetCastPoint(slave) + (pos:__sub(Entity.GetAbsOrigin(self)):Length2D() / 1200) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
-			Lina.Cast("lina_dragon_slave", self, Lina.Target, Lina.castPred(self, Lina.Target, slavePred, "line"), mana)
+			
+			local slavePred = Ability.GetCastPoint(slave) + (Entity.GetAbsOrigin( Lina.Target ):__sub(Entity.GetAbsOrigin(self)):Length2D() / 1200) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
+			Lina.Cast("lina_dragon_slave", self, Lina.Target, Lina.castPred(self, Lina.Target, slavePred), mana)
+			casted_slave = true
+		else
+			casted_slave = true
 		end
-		
-		if GUI.IsEnabled(Lina.Identity .."StunIC") then
-			local dist = Ability.GetCastRange( stun )
-			local stunPred = Ability.GetCastPoint(stun) + (pos:__sub(Entity.GetAbsOrigin(self)):Length2D() / dist) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
 
-			Lina.Cast("lina_light_strike_array", self, Lina.Target, Lina.castPred(self, Lina.Target, stunPred, "line"), mana)
+		if casted_slave and GUI.IsEnabled(Lina.Identity .."StunIC") then
+			local dist = Ability.GetCastRange( stun )
+			local stunPred = Ability.GetCastPoint(stun) + (Entity.GetAbsOrigin( Lina.Target ):__sub(Entity.GetAbsOrigin(self)):Length2D() / dist) + (NetChannel.GetAvgLatency(Enum.Flow.FLOW_OUTGOING) * 2)
+
+			Lina.Cast("lina_light_strike_array", self, Lina.Target, Lina.castPred(self, Lina.Target, stunPred), mana)
+			casted_stun = true
+		else
+			casted_stun = true
 		end
-		
-		if GUI.IsEnabled(Lina.Identity .."LagunaIC") then
+
+		if casted_stun and GUI.IsEnabled(Lina.Identity .."LagunaIC") then
 			Lina.Cast("lina_laguna_blade", self, Lina.Target, nil, mana)
 		end
 		
@@ -242,10 +251,10 @@ function Lina.targetChecker(self, genericEnemyEntity, throughBKB)
 	if not self then return end
 
 	if genericEnemyEntity and not Entity.IsDormant(genericEnemyEntity) and not NPC.IsIllusion(genericEnemyEntity) and Entity.GetHealth(genericEnemyEntity) > 0 then
-
-		if NPC.HasModifier(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return end
-	
+		
 		if NPC.HasAbility(genericEnemyEntity, "modifier_eul_cyclone") then return end
+		
+		if NPC.HasModifier(genericEnemyEntity, Enum.ModifierState.MODIFIER_STATE_MAGIC_IMMUNE) and not throughBKB then return end
 	
 		if NPC.IsLinkensProtected( genericEnemyEntity ) then return end
 	
@@ -289,7 +298,7 @@ function Lina.LockTarget(enemy)
 		return
 	end
 
-	if Lina.Target ~= nil then
+	if Lina.Target and Entity.IsHero(Lina.Target) then
 		if not Entity.IsAlive(Lina.Target) then
 			Lina.Target = nil
 			return
@@ -325,7 +334,7 @@ function Lina.IsHeroInvisible(Hero)
 	return false
  end
 
-function Lina.castPred(self, enemy, adjustmentVariable, castType)
+function Lina.castPred(self, enemy, adjustmentVariable)
 	if not enemy or not adjustmentVariable then return end
 
 	local enemyRotation = Entity.GetRotation(enemy):GetVectors()
@@ -337,12 +346,7 @@ function Lina.castPred(self, enemy, adjustmentVariable, castType)
 		if not NPC.IsRunning(enemy) then
 			return enemyOrigin
 		else
-			if castType == "pos" then
-				local cosGamma = (Entity.GetAbsOrigin(self) - enemyOrigin):Dot2D(enemyRotation:Scaled(100)) / ((Entity.GetAbsOrigin(self) - enemyOrigin):Length2D() * enemyRotation:Scaled(100):Length2D())
-				return enemyOrigin:__add(enemyRotation:Normalized():Scaled(Lina.GetMoveSpeed(enemy) * adjustmentVariable * (1 - cosGamma)))
-			elseif castType == "line" then
-				return enemyOrigin:__add(enemyRotation:Normalized():Scaled(Lina.GetMoveSpeed(enemy) * adjustmentVariable))
-			end
+			return enemyOrigin:__add(enemyRotation:Normalized():Scaled(Lina.GetMoveSpeed(enemy) * adjustmentVariable))
 		end
 	end
 end
