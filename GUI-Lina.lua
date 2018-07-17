@@ -137,7 +137,6 @@ function Lina.Combo()
 		local ordercast = GUI.Get(Lina.Identity .. "ordercast", 1)
 		if ordercast ~= nil then
 			for i = 1, Length(ordercast) do
-				Log.Write(tostring(ordercast[i]))
 				Lina.Cast(ordercast[i], self, Lina.Target, pos, mana)
 			end
 		end
