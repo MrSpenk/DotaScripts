@@ -1,17 +1,10 @@
 local MineDestroyer = {}
 
-MineDestroyer.optionEnable = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Activation", false)
-MineDestroyer.optionOnlyRed = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Destroy only red mines", true)
-MineDestroyer.optionInvAttack = Menu.AddOptionBool({"Utility", "Mine Destroyer"}, "Attack during invisibility", false)
-MineDestroyer.optionPanicKey = Menu.AddKeyOption({"Utility", "Mine Destroyer"}, "Panic Key ", Enum.ButtonCode.BUTTON_CODE_NONE)
+MineDestroyer.optionEnable = Menu.AddOptionBool({"Utility"}, "Mine Destroyer", false)
 
 function MineDestroyer.OnUpdate()
 	if not Menu.IsEnabled( MineDestroyer.optionEnable ) then return end
-	
-	if Menu.IsKeyDown( MineDestroyer.optionPanicKey ) then 
-		Menu.SetEnabled( MineDestroyer.optionEnable, false )
-	end
-		
+
 	local myHero = Heroes.GetLocal()
 	if not myHero then return end
 		
@@ -23,19 +16,13 @@ function MineDestroyer.OnUpdate()
 		
 	local npcs = Entity.GetUnitsInRadius(myHero, radius, Enum.TeamType.TEAM_ENEMY)
 	if not npcs or #npcs < 1 then return end
-	
-	local onlyRed = Menu.GetValue( MineDestroyer.optionOnlyRed )
-	
+
 	for i = 0, #npcs do
 		local npc = npcs[i]
 		if npc and not Entity.IsSameTeam(myHero, npc) then
 			local name = NPC.GetUnitName( npc )
 			
 			if name and name == "npc_dota_techies_land_mine" then
-				MineDestroyer.Attack(myHero, npc)
-			end
-
-			if not onlyRed and name == "npc_dota_techies_remote_mine" or name == "npc_dota_techies_stasis_trap" then
 				MineDestroyer.Attack(myHero, npc)
 			end
 		end
@@ -45,15 +32,11 @@ end
 function MineDestroyer.Attack(myHero, target)
 	if not myHero or not target then return end
 	
-	if not Menu.IsEnabled( MineDestroyer.optionInvAttack ) and MineDestroyer.IsHeroInvisible(myHero) == true then return end
-	
+	if MineDestroyer.IsHeroInvisible(myHero) then return end
 	if MineDestroyer.isHeroChannelling(myHero) then return end
-	if not MineDestroyer.heroCanCastItems(myHero) then return end
-	
-	if target ~= nil then
-		if not Menu.IsEnabled( MineDestroyer.optionEnable ) then return end
-		Player.AttackTarget(Players.GetLocal(), myHero, target)
-	end
+	if not MineDestroyer.heroActive(myHero) then return end
+
+	Player.AttackTarget(Players.GetLocal(), myHero, target)
 end
 
 function MineDestroyer.IsHeroInvisible(myHero)
@@ -82,7 +65,7 @@ function MineDestroyer.IsHeroInvisible(myHero)
 	return false
 end
 
-function MineDestroyer.heroCanCastItems(myHero)
+function MineDestroyer.heroActive(myHero)
 
 	if not myHero then return false end
 	if not Entity.IsAlive(myHero) then return false end
@@ -109,10 +92,8 @@ function MineDestroyer.heroCanCastItems(myHero)
 	if NPC.HasModifier(myHero, "modifier_storm_spirit_electric_vortex_pull") then return false end
 	if NPC.HasModifier(myHero, "modifier_tidehunter_ravage") then return false end
 	if NPC.HasModifier(myHero, "modifier_windrunner_shackle_shot") then return false end
-	if NPC.HasModifier(myHero, "modifier_item_nullifier_mute") then return false end
 
-	return true	
-
+	return true
 end
 
 function MineDestroyer.isHeroChannelling(myHero)
